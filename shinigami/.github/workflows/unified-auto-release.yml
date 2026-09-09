@@ -26,12 +26,18 @@ jobs:
         run: |
           ls -la fabric/build/libs/baritone-fabric-1.17.0.jar
           echo "JAR size: $(stat -c%s fabric/build/libs/baritone-fabric-1.17.0.jar) bytes"
-      - name: Deploy to release
-        run: |
-          cp fabric/build/libs/baritone-fabric-1.17.0.jar /storage/emulated/0/1log/Shinigami-by-Saizo-1.17.0.jar || echo "Deploy target not available (expected in Termux)"
-      - name: Upload Release Asset
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+      - name: Upload Artifact (branch builds)
+        if: "!startsWith(github.ref, 'refs/tags/')"
         uses: actions/upload-artifact@v4
         with:
-          name: Shinigami-by-Saizo-${{ github.ref_name }}
+          name: Shinigami-by-Saizo-${{ github.sha }}
           path: fabric/build/libs/baritone-fabric-1.17.0.jar
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: fabric/build/libs/baritone-fabric-1.17.0.jar
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
