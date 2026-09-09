@@ -14,9 +14,12 @@ import java.util.*;
  */
 public class TargetManager {
     private final Minecraft mc = Minecraft.getInstance();
-    private final ShinigamiConfig cfg = ShinigamiConfig.getInstance();
+    private final ShinigamiConfig cfg;
     private LivingEntity primary = null;
     private long lastScan = 0;
+
+    public TargetManager() { this.cfg = ShinigamiConfig.getInstance(); }
+    public TargetManager(ShinigamiConfig cfg) { this.cfg = cfg; }
 
     public void tick() {
         if (mc.level == null || mc.player == null) return;
@@ -47,8 +50,14 @@ public class TargetManager {
     private boolean isValid(LivingEntity e) {
         if (e == null || e.isRemoved() || !e.isAlive()) return false;
         if (!cfg.isTargetInvisible() && e.isInvisible()) return false;
-        if (e instanceof net.minecraft.world.entity.animal.IronGolem) return true;
-        if (e instanceof net.minecraft.world.entity.animal.SnowGolem) return true;
+        // Iron/Snow golem via EntityType (1.21.1 mappings: IRON_GOLEM / SNOW_GOLEM)
+        try {
+            if (e.getType() == net.minecraft.world.entity.EntityType.IRON_GOLEM) return true;
+            if (e.getType() == net.minecraft.world.entity.EntityType.SNOW_GOLEM) return true;
+        } catch (Exception ignored) {
+            String t = e.getType().toString().toLowerCase();
+            if (t.contains("irongolem") || t.contains("snowgolem") || t.contains("snowman")) return true;
+        }
         if (e instanceof Player) return cfg.isTargetPlayers();
         if (e instanceof net.minecraft.world.entity.monster.Enemy) return cfg.isTargetHostile();
         if (e instanceof net.minecraft.world.entity.animal.Animal) return cfg.isTargetPassive();
