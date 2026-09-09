@@ -16,8 +16,6 @@ jobs:
         with:
           java-version: '25'
           distribution: 'temurin'
-      - name: Setup JAVA_HOME
-        run: echo "JAVA_HOME=/usr/lib/jvm/java-25-openjdk-arm64" >> $GITHUB_ENV
       - name: Build Shinigami (Universal 26.1.2 Fabric)
         run: |
           chmod +x gradlew
