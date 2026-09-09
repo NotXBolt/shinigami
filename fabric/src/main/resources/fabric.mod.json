@@ -1,29 +1,21 @@
 {
   "schemaVersion": 1,
   "id": "shinigami",
-  "version": "1.17.5",
-
+  "version": "${version}",
   "name": "Shinigami",
-  "description": "Autonomous AI companion - aim assist, chase, kill, farm, build portals, repair, durability management. EZ mode (undetectable) or DEMON mode.",
-  "authors": [
-    "Saizo"
-  ],
-
+  "description": "Shinigami by Saizo — total from scratch, demon for sure, unkillable hunting executioner. Phase 0: chase + pakur aggressively + follow + dodge 360° (entity/player/environment/clutch) — original perfect.",
+  "authors": ["Saizo"],
   "license": "LGPL-3.0",
-
+  "icon": "assets/shinigami/icon.png",
   "environment": "*",
   "entrypoints": {
-    "client": [
-      "shinigami.AimAssistMod"
-    ]
+    "client": ["shinigami.ShinigamiMod"]
   },
   "mixins": [
-      "mixins.baritone.json",
-      "mixins.aimassist.json",
       "mixins.shinigami.json"
   ],
   "depends": {
-    "fabricloader": ">=0.18.6",
+    "fabricloader": ">=0.19.2",
     "minecraft": ">=26.1 <26.3",
     "fabric-api": ">=0.148.0"
   }
