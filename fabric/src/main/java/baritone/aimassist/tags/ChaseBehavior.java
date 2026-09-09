@@ -202,10 +202,9 @@ public class ChaseBehavior {
 
         Vec3 dir = diff.normalize();
 
-        // ─── Face target with subtle yaw weave (visual only, never touches A/D) ───
+        // ─── Face target directly — no weave, no straightening (vision perfect, aggressive lock) ───
         float targetYaw = (float) Math.toDegrees(Math.atan2(-dir.x, dir.z));
-        double weave = Math.sin(mc.player.tickCount * 0.12) * 12;
-        mc.player.setYRot((float) (targetYaw + weave));
+        mc.player.setYRot(targetYaw);
 
         // ─── No strafe oscillation — mod never touches A/D ───
 

@@ -73,28 +73,21 @@ public class AimAssistScreen extends Screen {
     // ═══════════ MAIN ═══════════
 
     private void addMainTab(int cx, int y, int h) {
-        // Weapon row
-        int b = 48;
-        addToggle(cx - b * 3 - 4, y, "Crit", config.isCritMode(), config::setCritMode, b);
-        addToggle(cx - b * 2 - 2, y, "Combo", config.isComboMode(), config::setComboMode, b);
-        addToggle(cx - b, y, "Mace", config.isMaceMode(), config::setMaceMode, b);
-        addToggle(cx + 2, y, "Bow", config.isBowMode(), config::setBowMode, b);
-        addToggle(cx + b + 4, y, "Bridge", config.isBridgeMode(), config::setBridgeMode, b);
-
-        // Movement + Dodge + PvP
-        addToggle(cx - 75, y + h, "Movement", config.isMovementMode(), config::setMovementMode, 70);
-        addToggle(cx, y + h, "Dodge", config.isAutoDodge(), config::setAutoDodge, 70);
-        addToggle(cx + 75, y + h, "PvP", config.isPvpMode(), config::setPvpMode, 70);
-
-        // Auto + Survival
-        addToggle(cx - 100, y + h * 2, "Auto", config.isAutoMode(), config::setAutoMode, 60);
-        addToggle(cx - 35, y + h * 2, "Eat", config.isAutoEat(), config::setAutoEat, 60);
-        addToggle(cx + 30, y + h * 2, "Heal", config.isAutoHeal(), config::setAutoHeal, 60);
-        addToggle(cx + 95, y + h * 2, "Clutch", config.isAutoClutch(), config::setAutoClutch, 60);
-
-        // Flee + Farm
-        addToggle(cx - 50, y + h * 3, "Flee", module.isFleeMode(), v -> module.setFleeMode(v), 90);
-        addToggle(cx + 50, y + h * 3, "Farm", module.isFarmMode(), v -> module.setFarmMode(v), 90);
+        // Branded header handled in extractRenderState — keep toggles only for working features
+        int b = 52;
+        // Row 1: Combat styles (all functional: Crit=1-tick burst, Combo=hit-chain, Mace=fall smash, Bow=prediction)
+        addToggle(cx - b * 2 - 6, y, "Crit", config.isCritMode(), config::setCritMode, b);
+        addToggle(cx - b + 2, y, "Combo", config.isComboMode(), config::setComboMode, b);
+        addToggle(cx + 4, y, "Mace", config.isMaceMode(), config::setMaceMode, b);
+        addToggle(cx + b + 10, y, "Bow", config.isBowMode(), config::setBowMode, b);
+        // Row 2: Core movement — Dodge never blocks chase (MovementArbiter priority), Movement=WASD supplement, PvP=full scenario
+        addToggle(cx - 80, y + h, "Movement", config.isMovementMode(), config::setMovementMode, 75);
+        addToggle(cx, y + h, "Dodge", config.isAutoDodge(), config::setAutoDodge, 75);
+        addToggle(cx + 80, y + h, "PvP", config.isPvpMode(), config::setPvpMode, 75);
+        // Row 3: Survival (only working autos) — Clutch=water/hay/ladder, Eat/Heal kept but compact
+        addToggle(cx - 80, y + h * 2, "Clutch", config.isAutoClutch(), config::setAutoClutch, 75);
+        addToggle(cx, y + h * 2, "Eat", config.isAutoEat(), config::setAutoEat, 75);
+        addToggle(cx + 80, y + h * 2, "Heal", config.isAutoHeal(), config::setAutoHeal, 75);
     }
 
     // ═══════════ AIM ═══════════

@@ -18,7 +18,7 @@ public class AimAssistConfig implements IAimConfig {
 
     // --- General ---
     private double range = 3.0;
-    private double fov = 120.0;
+    private double fov = 360.0;
     private boolean targetPlayers = true;
     private boolean targetHostile = false;
     private boolean targetPassive = false;
@@ -82,16 +82,16 @@ public class AimAssistConfig implements IAimConfig {
 
     // --- Modes ---
     private Mode mode = Mode.DEMON;
-    private boolean enabled = false;
+    private boolean enabled = true;
 
     // --- Sub-modes ---
-    private boolean critMode = false;
-    private boolean comboMode = false;
-    private boolean maceMode = false;
+    private boolean critMode = true;
+    private boolean comboMode = true;
+    private boolean maceMode = true;
     private boolean bowMode = false;
     private boolean bridgeMode = false;
     private boolean autoMode = false;
-    private boolean pvpMode = false;
+    private boolean pvpMode = true;
 
     public static AimAssistConfig getInstance() {
         if (INSTANCE == null) INSTANCE = new AimAssistConfig();
