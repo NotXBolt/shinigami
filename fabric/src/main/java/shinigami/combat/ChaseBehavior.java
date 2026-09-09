@@ -12,6 +12,7 @@ import net.minecraft.world.phys.Vec3;
 import shinigami.config.ShinigamiConfig;
 import shinigami.movement.MovementArbiter;
 import shinigami.movement.MovementIntent;
+import shinigami.movement.ParkourEnforcer;
 import shinigami.targeting.TargetManager;
 import java.util.UUID;
 
@@ -22,6 +23,7 @@ public class ChaseBehavior {
     private final Minecraft mc = Minecraft.getInstance();
     private final TargetManager tm;
     private final ShinigamiConfig cfg = ShinigamiConfig.getInstance();
+    private final ParkourEnforcer enforcer = new ParkourEnforcer();
     private String targetName = null;
     private UUID targetUUID = null;
     private boolean kill = false;
@@ -38,14 +40,16 @@ public class ChaseBehavior {
         // Face directly, no weave
         float yaw = (float) Math.toDegrees(Math.atan2(-dir.x, dir.z));
         mc.player.setYRot(yaw);
-        // Aggressive parkour
+        // Aggressive parkour — super crazy original via ParkourEnforcer (enforced table + Theta* + block costs)
         boolean gap = detectGap();
         boolean edge = detectEdge();
         boolean blocked = isBlocked();
         boolean oneBlock = detectOneBlock();
         boolean above = target.getY() > mc.player.getY() + 1.5;
-        boolean jump = gap || edge || blocked || oneBlock || (above && mc.player.onGround());
-        boolean sprint = mc.player.getFoodData().getFoodLevel() > 6 && dist > 2;
+        boolean jump = enforcer.shouldJump(gap, edge, blocked, oneBlock, above);
+        boolean sprint = enforcer.shouldSprint(dist);
+        Vec3 finalDir = enforcer.calculateDir(new Vec3(diff.x, 0, diff.z));
+        if (finalDir.lengthSqr() > 1e-6) dir = finalDir;
         arbiter.submit(new MovementIntent(MovementIntent.Priority.CHASE, dir, sprint, jump ? MovementIntent.JumpType.GAP_JUMP : MovementIntent.JumpType.NONE, false, 2, "chase"));
         if (blocked) breakBlock();
     }
