@@ -2,19 +2,13 @@ package baritone.aimassist;
 
 import baritone.api.aimassist.IAimAssist.Mode;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.client.renderer.texture.NativeImage;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import java.io.File;
-import java.io.FileInputStream;
 
 import java.util.function.DoubleConsumer;
 import java.util.function.Consumer;
@@ -29,23 +23,6 @@ public class AimAssistScreen extends Screen {
     private static final String[] TABS = {"MAIN", "AIM", "CHASE", "SETTINGS"};
 
     private EditBox targetNameField;
-    private ResourceLocation profileTexture = null;
-    private boolean profileLoaded = false;
-
-    private void loadProfilePicture() {
-        if (profileLoaded) return;
-        profileLoaded = true;
-        try {
-            File img = new File("/storage/emulated/0/1log/shinigami.jpg");
-            if (!img.exists()) img = new File("/sdcard/1log/shinigami.jpg");
-            if (!img.exists()) return;
-            NativeImage nativeImg = NativeImage.read(new FileInputStream(img));
-            DynamicTexture dynTex = new DynamicTexture(nativeImg);
-            profileTexture = Minecraft.getInstance().getTextureManager().register("shinigami_profile", dynTex);
-        } catch (Exception e) {
-            System.err.println("[Shinigami] profile load failed: " + e.getMessage());
-        }
-    }
 
     public AimAssistScreen(Screen parent) {
         super(Component.literal("Shinigami Config"));
@@ -54,7 +31,6 @@ public class AimAssistScreen extends Screen {
 
     @Override
     protected void init() {
-        loadProfilePicture();
         int cx = width / 2;
 
         addRenderableWidget(CycleButton.<Mode>builder(
@@ -199,7 +175,16 @@ public class AimAssistScreen extends Screen {
         addToggle(cx, y + h * 3, "Human Mouse", config.isHumanMouseSimulation(), config::setHumanMouseSimulation, 100);
         addToggle(cx + 105, y + h * 3, "Spoof", config.isRotationSpoof(), config::setRotationSpoof, 80);
 
-        // Phase 0: keep only working visual/humanization — remove trash (Trigger/Mace/Smash/Sprint H2O/Surface not used yet)
+        // Trigger bot
+        addToggle(cx, y + h * 4, "Trigger", config.isTriggerBot(), config::setTriggerBot, 80);
+        addSlider(cx, y + h * 5, "T-Delay", config.getTriggerDelay(), 0, 20, v -> config.setTriggerDelay((int)v));
+        addSlider(cx, y + h * 6, "T-Range", config.getTriggerRange(), 1, 10, v -> config.setTriggerRange(v));
+
+        // Misc
+        addToggle(cx, y + h * 7, "Mace Assist", config.isMaceAssist(), config::setMaceAssist, 100);
+        addSlider(cx, y + h * 8, "Smash H", config.getMinSmashHeight(), 0, 10, v -> config.setMinSmashHeight(v));
+        addToggle(cx, y + h * 9, "Sprint H2O", config.isSprintInWater(), config::setSprintInWater, 100);
+        addToggle(cx + 105, y + h * 9, "Surface", config.isAutoSurface(), config::setAutoSurface, 80);
     }
 
     // ═══════════ HELPERS ═══════════
@@ -230,12 +215,6 @@ public class AimAssistScreen extends Screen {
         var font = Minecraft.getInstance().font;
         graphics.text(font, Component.literal("§l§6SHINIGAMI §7" + (config.isEnabled() ? "§aON" : "§cOFF")),
             (width - font.width("SHINIGAMI")) / 2, 0, 0xFFFFFF);
-        if (profileTexture != null) {
-            try {
-                // 32x32 profile at top-right, branded header
-                graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, profileTexture, width - 36, 2, 0, 0, 32, 32, 32, 32);
-            } catch (Exception ignored) {}
-        }
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
