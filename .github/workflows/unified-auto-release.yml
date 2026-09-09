@@ -23,23 +23,30 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew :fabric:build -x test -x :fabric:proguard -x :fabric:createDist --no-daemon
+      - name: Brand JAR (Shinigami-by-Saizo)
+        run: |
+          ls -lh fabric/build/libs/
+          # Keep baritone jar but also create branded copy for release
+          BRANDED="fabric/build/libs/Shinigami-by-Saizo-1.17.0.jar"
+          cp fabric/build/libs/baritone-fabric-*.jar "$BRANDED" 2>/dev/null || cp $(ls fabric/build/libs/*.jar | head -1) "$BRANDED"
+          ls -lh fabric/build/libs/
+          echo "BRANDED=$BRANDED" >> $GITHUB_ENV
       - name: Verify JAR output
         run: |
-          ls -lah fabric/build/libs/ || true
-          ls -la fabric/build/libs/*.jar || (echo "No JAR found" && exit 1)
-          echo "JAR size: $(stat -c%s fabric/build/libs/*.jar | head -1) bytes"
+          ls -lah fabric/build/libs/Shinigami-by-Saizo-*.jar
+          echo "JAR size: $(stat -c%s fabric/build/libs/Shinigami-by-Saizo-*.jar) bytes"
       - name: Upload Artifact (branch builds)
         if: "!startsWith(github.ref, 'refs/tags/')"
         uses: actions/upload-artifact@v4
         with:
           name: Shinigami-by-Saizo-${{ github.sha }}
-          path: fabric/build/libs/*.jar
+          path: fabric/build/libs/Shinigami-by-Saizo-*.jar
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: fabric/build/libs/*.jar
+          files: fabric/build/libs/Shinigami-by-Saizo-*.jar
           generate_release_notes: true
-          fail_on_unmatched_files: false
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
