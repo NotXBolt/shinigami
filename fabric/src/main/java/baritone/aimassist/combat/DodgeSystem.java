@@ -22,6 +22,7 @@ import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -341,7 +342,24 @@ public class DodgeSystem {
         Vec3 traj = new Vec3(vel.x, 0, vel.z).normalize();
         Vec3 perp = new Vec3(-traj.z, 0, traj.x);
         Vec3 toMe = new Vec3(mc.player.getX() - origin.x, 0, mc.player.getZ() - origin.z);
-        return toMe.dot(perp) >= 0 ? perp : perp.scale(-1);
+        Vec3 dodgeDir = toMe.dot(perp) >= 0 ? perp : perp.scale(-1);
+        // Dodger-inspired: minimal movement (max 1-block) + safe positioning (never into lava/void/danger)
+        if (!isSafeDodgePosition(dodgeDir)) {
+            Vec3 opposite = dodgeDir.scale(-1);
+            if (isSafeDodgePosition(opposite)) return opposite;
+        }
+        return dodgeDir;
+    }
+
+    private boolean isSafeDodgePosition(Vec3 dir) {
+        if (mc.player == null || mc.level == null) return false;
+        BlockPos dest = mc.player.blockPosition().offset((int)Math.signum(dir.x), 0, (int)Math.signum(dir.z));
+        var state = mc.level.getBlockState(dest);
+        var below = mc.level.getBlockState(dest.below());
+        // Never into lava, void, or dangerous blocks; must have solid below within 1
+        if (state.is(Blocks.LAVA) || state.is(Blocks.FIRE) || state.is(Blocks.CACTUS) || state.is(Blocks.MAGMA_BLOCK)) return false;
+        if (dest.getY() <= mc.level.getMinY() + 1) return false;
+        return below.isSolid() || mc.level.getBlockState(dest.below(2)).isSolid();
     }
 
     private boolean isAimedAtMe(Vec3 origin, Vec3 vel) {

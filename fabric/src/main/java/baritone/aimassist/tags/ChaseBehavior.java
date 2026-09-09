@@ -214,9 +214,11 @@ public class ChaseBehavior {
             && !mc.player.isInLava()
             && distance > 2.0;
 
-        // ─── Aggressive parkour: perfect edge detection (inspired by better-auto-jump + Oogabooga) ───
-        // Jump only when needed: gap at edge, 1-block obstacle, or target above — never spam in air
-        boolean jump = gapAhead || pathBlocked || oneBlockObstacle || (targetAbove && mc.player.onGround());
+        // ─── Aggressive parkour: perfect edge detection (inspired by better-auto-jump + Oogabooga + Kiwi Theta*) ───
+        // Edge jump (better-auto-jump): detect approaching block edge while sprinting, jump just before edge
+        boolean edgeAhead = detectEdgeAhead();
+        // Jump only when needed: gap at edge, edge-approach, 1-block obstacle, or target above — never spam in air
+        boolean jump = gapAhead || edgeAhead || pathBlocked || oneBlockObstacle || (targetAbove && mc.player.onGround());
 
         // If there's a 1-block obstacle ahead and no sprint momentum: jump to clear it
         if (oneBlockObstacle && mc.player.onGround() && !jump) {
@@ -339,6 +341,24 @@ public class ChaseBehavior {
         return false;
     }
 
+    private boolean detectEdgeAhead() {
+        if (mc.player == null || mc.level == null || !mc.player.onGround()) return false;
+        Vec3 vel = mc.player.getDeltaMovement();
+        double speed = Math.sqrt(vel.x * vel.x + vel.z * vel.z);
+        if (speed < 0.1) return false; // Min velocity from better-auto-jump
+        Vec3 look = mc.player.getLookAngle();
+        // Sprint distance 2.0, step 0.35 (better-auto-jump params)
+        for (double d = 0.3; d <= 2.0; d += 0.35) {
+            Vec3 checkPos = mc.player.position().add(look.scale(d));
+            BlockPos feet = new BlockPos((int)Math.floor(checkPos.x), (int)Math.floor(mc.player.getY() - 0.05), (int)Math.floor(checkPos.z));
+            var feetState = mc.level.getBlockState(feet);
+            double height = feetState.isSolid() ? 1.0 : 0.0;
+            // Edge if ground height below threshold (Solid Min 0.001, Max 0.6)
+            if (height < 0.001) return true;
+        }
+        return false;
+    }
+
     private boolean hasBridgeBlocks() {
         if (mc.player == null) return false;
         for (int i = 0; i < 9; i++) {
@@ -356,6 +376,15 @@ public class ChaseBehavior {
         if (stack.isEmpty()) return false;
         var item = stack.getItem();
         return item instanceof net.minecraft.world.item.BlockItem;
+    }
+
+    // cadence-inspired block traversal costs (soul sand, honey, slime, dripleaf) — original perfect, not copy
+    private double getBlockCost(BlockState state) {
+        if (state.is(Blocks.SOUL_SAND)) return 2.5;
+        if (state.is(Blocks.HONEY_BLOCK)) return 3.0;
+        if (state.is(Blocks.SLIME_BLOCK)) return 1.8;
+        if (state.is(Blocks.BIG_DRIPLEAF) || state.is(Blocks.SMALL_DRIPLEAF)) return 2.0;
+        return 1.0;
     }
 
     private void doBridge(Vec3 dir) {
