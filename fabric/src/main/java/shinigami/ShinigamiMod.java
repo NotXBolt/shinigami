@@ -1,5 +1,6 @@
 package shinigami;
 
+import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.Minecraft;
 import shinigami.combat.*;
 import shinigami.config.ShinigamiConfig;
