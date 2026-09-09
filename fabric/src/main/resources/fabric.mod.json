@@ -3,7 +3,7 @@
   "id": "shinigami",
   "version": "${version}",
   "name": "Shinigami",
-  "description": "Shinigami by Saizo — total from scratch, demon for sure, unkillable hunting executioner. Phase 0: chase + pakur aggressively + follow + dodge 360° (entity/player/environment/clutch) — original perfect.",
+  "description": "Shinigami by Saizo — total from scratch, demon for sure, unkillable hunting executioner. v1.0.5 single mod — all 22 repos integrated (Dodger/Kiwi/Oogabooga/ParkourCalculator/cadence/pvp-bot etc) rebranded, RL safe, R/G GUI with descriptions",
   "authors": ["Saizo"],
   "license": "LGPL-3.0",
   "icon": "assets/shinigami/icon.png",

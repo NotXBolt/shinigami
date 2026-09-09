@@ -1,21 +1,21 @@
 package shinigami.config;
 
 /**
- * ShinigamiConfig — Total from scratch, original, extensive. Not copy, not Frankenstein.
- * Phase 0: chase + pakur + follow + dodge 360° — demon for sure, vanilla 3.0 exact, no labels.
- * Every field enforced via table, inspired by maple/Kiwi/Dodger/better-auto-jump but rewritten original.
+ * ShinigamiConfig — Total from scratch, original, extensive.
+ * Phase 0+ : chase + pakur + dodge 360 + RL safe + GUI.
+ * Defaults: enabled=false (no auto-run on world load), R to toggle.
  */
 public class ShinigamiConfig {
 
     private static ShinigamiConfig INSTANCE;
 
-    // General — original
-    private double range = 3.0; // vanilla exact 3.0, never extended
-    private double fov = 360.0; // 360° perfect, no blind behind
+    // General — vanilla exact
+    private double range = 3.0;
+    private double fov = 360.0;
     private double detectionRange = 64.0;
 
-    // Modes — Phase 0 retail: only Movement/Dodge/PvP, demon for sure
-    private boolean enabled = true;
+    // Modes — default OFF so world load doesn't auto-run into mobs
+    private boolean enabled = false;
     private boolean movementMode = true;
     private boolean autoDodge = true;
     private boolean pvpMode = true;
@@ -23,7 +23,7 @@ public class ShinigamiConfig {
     private boolean autoEat = true;
     private boolean autoHeal = true;
 
-    // Sub-modes disabled for Phase 0 retail (chase/dodge only), enabled via GUI for Phase 1
+    // Combat sub-modes — all functional, enabled via GUI
     private boolean critMode = false;
     private boolean comboMode = false;
     private boolean maceMode = false;
@@ -32,12 +32,30 @@ public class ShinigamiConfig {
     // Targeting
     private boolean targetPlayers = true;
     private boolean targetHostile = true;
-    private boolean targetPassive = true;
+    private boolean targetPassive = false; // default false to avoid mob aggro unless hunt
     private boolean targetInvisible = false;
 
     // Chase
     private String chaseTargetName = null;
     private boolean chaseKill = false;
+    private boolean chaseMode = false;
+
+    // GUI extras
+    private boolean showHUD = true;
+    private boolean showTargetInfo = true;
+    private double aimSpeed = 1.0;
+    private double smoothing = 0.5;
+    private double predictAmount = 1.0;
+
+    // Safety / RL
+    private boolean safeMode = true; // never lose progress — avoid void/lava, keep inventory
+    private boolean rlEnabled = true;
+    private double rlLearningRate = 0.1;
+    private double rlDiscount = 0.9;
+
+    // Durability
+    private double durabilityThreshold = 0.15;
+    private boolean xpFarmEnabled = false;
 
     public static ShinigamiConfig getInstance() {
         if (INSTANCE == null) INSTANCE = new ShinigamiConfig();
@@ -45,14 +63,15 @@ public class ShinigamiConfig {
     }
 
     public double getRange() { return range; }
-    public void setRange(double v) { range = v; }
+    public void setRange(double v) { range = Math.max(1, Math.min(6, v)); }
     public double getFOV() { return fov; }
-    public void setFOV(double v) { fov = v; }
+    public void setFOV(double v) { fov = Math.max(30, Math.min(360, v)); }
     public double getDetectionRange() { return detectionRange; }
-    public void setDetectionRange(double v) { detectionRange = v; }
+    public void setDetectionRange(double v) { detectionRange = Math.max(8, Math.min(128, v)); }
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean v) { enabled = v; }
+    public void toggle() { enabled = !enabled; }
     public boolean isMovementMode() { return movementMode; }
     public void setMovementMode(boolean v) { movementMode = v; }
     public boolean isAutoDodge() { return autoDodge; }
@@ -88,4 +107,31 @@ public class ShinigamiConfig {
     public void setChaseTargetName(String v) { chaseTargetName = v; }
     public boolean isChaseKill() { return chaseKill; }
     public void setChaseKill(boolean v) { chaseKill = v; }
+    public boolean isChaseMode() { return chaseMode; }
+    public void setChaseMode(boolean v) { chaseMode = v; }
+
+    public boolean isShowHUD() { return showHUD; }
+    public void setShowHUD(boolean v) { showHUD = v; }
+    public boolean isShowTargetInfo() { return showTargetInfo; }
+    public void setShowTargetInfo(boolean v) { showTargetInfo = v; }
+    public double getAimSpeed() { return aimSpeed; }
+    public void setAimSpeed(double v) { aimSpeed = v; }
+    public double getSmoothing() { return smoothing; }
+    public void setSmoothing(double v) { smoothing = v; }
+    public double getPredictAmount() { return predictAmount; }
+    public void setPredictAmount(double v) { predictAmount = v; }
+
+    public boolean isSafeMode() { return safeMode; }
+    public void setSafeMode(boolean v) { safeMode = v; }
+    public boolean isRlEnabled() { return rlEnabled; }
+    public void setRlEnabled(boolean v) { rlEnabled = v; }
+    public double getRlLearningRate() { return rlLearningRate; }
+    public void setRlLearningRate(double v) { rlLearningRate = v; }
+    public double getRlDiscount() { return rlDiscount; }
+    public void setRlDiscount(double v) { rlDiscount = v; }
+
+    public double getDurabilityThreshold() { return durabilityThreshold; }
+    public void setDurabilityThreshold(double v) { durabilityThreshold = Math.max(0, Math.min(1, v)); }
+    public boolean isXpFarmEnabled() { return xpFarmEnabled; }
+    public void setXpFarmEnabled(boolean v) { xpFarmEnabled = v; }
 }
