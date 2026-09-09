@@ -25,20 +25,21 @@ jobs:
           ./gradlew :fabric:build -x test -x :fabric:proguard -x :fabric:createDist --no-daemon
       - name: Verify JAR output
         run: |
-          ls -la fabric/build/libs/baritone-fabric-1.17.0.jar
-          echo "JAR size: $(stat -c%s fabric/build/libs/baritone-fabric-1.17.0.jar) bytes"
+          ls -lah fabric/build/libs/ || true
+          ls -la fabric/build/libs/*.jar || (echo "No JAR found" && exit 1)
+          echo "JAR size: $(stat -c%s fabric/build/libs/*.jar | head -1) bytes"
       - name: Upload Artifact (branch builds)
         if: "!startsWith(github.ref, 'refs/tags/')"
         uses: actions/upload-artifact@v4
         with:
           name: Shinigami-by-Saizo-${{ github.sha }}
-          path: fabric/build/libs/baritone-fabric-1.17.0.jar
+          path: fabric/build/libs/*.jar
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: fabric/build/libs/baritone-fabric-1.17.0.jar
+          files: fabric/build/libs/*.jar
           generate_release_notes: true
-          fail_on_unmatched_files: true
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
