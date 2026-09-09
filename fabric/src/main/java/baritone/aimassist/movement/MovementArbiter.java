@@ -19,10 +19,7 @@ public class MovementArbiter {
             return;
         }
 
-        // UNKILLABLE RESOLUTION: DODGE (100) > CLUTCH (95) > CRIT (70) > CHASE (50) > COMBAT (30) > PARKOUR (20) > AUTO_WALK (10)
-        // Defensive priorities are ABSOLUTE — never overridden by offensive intentions
-        // Packet defense (velocity suppression + explosion defense) ensures zero knockback disruption
-        MovementIntent winner = null;
+        MovementIntent winner = intents.get(0);
         for (int i = 1; i < intents.size(); i++) {
             if (intents.get(i).priority.value > winner.priority.value) {
                 winner = intents.get(i);

@@ -55,9 +55,7 @@ public class DodgeSystem {
     }
 
     public void tick() {
-        // UNKILLABLE MODE: Always run defensive predictive layers regardless of active state
-        // Predict BEFORE action, react on action start, react on threat — all 3 layers always running
-        if (mc.player == null || mc.level == null) return;
+        if (!active || mc.player == null || mc.level == null) return;
 
         if (shieldBlockCooldown > 0) shieldBlockCooldown--;
         if (witchAlertTicks > 0) witchAlertTicks--;
@@ -215,30 +213,6 @@ public class DodgeSystem {
                 boolean facingMe = p.getLookAngle().dot(
                     mc.player.position().subtract(p.getEyePosition()).normalize()) > 0.5;
                 // Predictive layer: detect opponent action before it starts
-                if (dist < 3.5 && facingMe && hasWeapon && !p.isUsingItem()) {
-                    Vec3 toward = new Vec3(p.getX() - mc.player.getX(), 0, p.getZ() - mc.player.getZ()).normalize();
-                    Vec3 perp = new Vec3(-toward.z, 0, toward.x);
-                    triggerDodge(toward.add(perp.scale(0.7)).normalize(), true, true, MELEE_DURATION, "predict-melee");
-                    return true;
-                }
-            }
-            if (e instanceof Monster m && m.getTarget() == mc.player && dist < 3) {
-                triggerDodge(aggressiveStrafe(m.position()), true, true, MELEE_DURATION, "predict-monster");
-                return true;
-            }
-        }
-        return false;
-    }
-        AABB box = getSearchBox(MELEE_RANGE);
-        for (Entity e : mc.level.getEntitiesOfClass(Entity.class, box)) {
-            if (!e.isAlive() || e == mc.player) continue;
-            double dist = mc.player.distanceTo(e);
-            if (dist > MELEE_RANGE) continue;
-
-            if (e instanceof Player p && p != mc.player) {
-                boolean hasWeapon = isWeapon(p.getMainHandItem());
-                boolean facingMe = p.getLookAngle().dot(
-                    mc.player.position().subtract(p.getEyePosition()).normalize()) > 0.5;
                 if (dist < 3.5 && facingMe && hasWeapon && !p.isUsingItem()) {
                     Vec3 toward = new Vec3(p.getX() - mc.player.getX(), 0, p.getZ() - mc.player.getZ()).normalize();
                     Vec3 perp = new Vec3(-toward.z, 0, toward.x);

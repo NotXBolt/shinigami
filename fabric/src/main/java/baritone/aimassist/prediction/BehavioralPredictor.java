@@ -90,21 +90,6 @@ public class BehavioralPredictor {
             zigzagScore = (double) signChanges / h.yaws.size();
         }
 
-        // Enhanced pattern classification with fight-style awareness (aggressive/defensive/runner/panic)
-        boolean aggressive = sprintRatio > 0.6 && yawRange > 30 && strafeChanges > 3;
-        boolean defensive = sprintRatio > 0.5 && yawRange > 50 && strafeChanges > 2;
-        boolean runner = sprintRatio > 0.7 && yawRange < 20 && jumpRatio < 0.2;
-        boolean panic = sprintRatio > 0.4 && yawRange > 100 && jumpRatio > 0.4;
-        if (h.yaws.size() >= 8) {
-            int signChanges = 0;
-            for (int i = 2; i < h.yaws.size(); i++) {
-                float d1 = h.yaws.get(i-1) - h.yaws.get(i-2);
-                float d2 = h.yaws.get(i) - h.yaws.get(i-1);
-                if (d1 * d2 < 0) signChanges++;
-            }
-            zigzagScore = (double) signChanges / h.yaws.size();
-        }
-
         if (yawRange > 80 && strafeChanges > 5) return new PatternData(Pattern.CIRCLE_STRAFER, 0.7);
         if (yawRange > 40 && strafeChanges > 3) return new PatternData(Pattern.AGGRESSIVE_STRAFER, 0.6);
         if (zigzagScore > 0.3) return new PatternData(Pattern.ZIGZAG, 0.55);
@@ -112,11 +97,7 @@ public class BehavioralPredictor {
         if (sprintRatio > 0.7 && yawRange < 20) return new PatternData(Pattern.LINEAR_CHASER, 0.7);
         if (sprintRatio < 0.3) return new PatternData(Pattern.PANIC_RUNNER, 0.5);
 
-        // Enhanced repetitive detection: high confidence (>0.8) = opponent repeats same pattern
-        boolean repetitive = confidence > 0.8 && ticksAhead <= 5;
-        // Apply behavioral offset: base * hurtModifier(0.7) * sprintModifier(1.2, cap 1.0) * tickDecay(1.0 - ticks*0.1)
-        double adjustedConfidence = confidence;
-        return new PatternData(Pattern.UNKNOWN, Math.max(0.05, Math.min(0.95, adjustedConfidence * (1.0 - ticksAhead * 0.08))));
+        return new PatternData(Pattern.UNKNOWN, 0.15);
     }
 
     public Vec3 predictPosition(Vec3 pos, Vec3 velocity, float yaw, int entityId, int ticksAhead) {

@@ -130,7 +130,7 @@ public class AimController {
 
     public BehavioralPredictor getBehavioralPredictor() { return behavioralPredictor; }
 
-    public void setActive(boolean active) { this.active = active; if (active) smoother.applyPerfectSmoothTuning(); }
+    public void setActive(boolean active) { this.active = active; }
     public void setAimSpeed(double speed) { this.aimSpeed = speed; }
     public void setNoiseLevel(double noise) { this.noiseLevel = noise; }
     public void setSilentAim(boolean silent) { this.silentAim = silent; }
