@@ -1,60 +1,40 @@
 package shinigami.movement;
 
-import shinigami.util.KeyMovementController;
+import shinigami.util.KeyController;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * MovementArbiter — Original, picks highest priority intent, applies via KeyController.
+ * clearSupplement() at START of tickMovement, never in empty path.
+ */
 public class MovementArbiter {
     private final List<MovementIntent> intents = new ArrayList<>();
-    private MovementIntent lastWinner = null;
+    private MovementIntent last = null;
 
-    public void submit(MovementIntent intent) {
-        if (intent != null && intent.hasMovement()) intents.add(intent);
-    }
-
+    public void submit(MovementIntent i) { if (i != null && i.hasMovement()) intents.add(i); }
     public void clear() { intents.clear(); }
 
-    public void apply(KeyMovementController ctrl) {
-        if (intents.isEmpty() || ctrl == null) {
-            return;
-        }
-
-        MovementIntent winner = intents.get(0);
-        for (int i = 1; i < intents.size(); i++) {
-            if (intents.get(i).priority.value > winner.priority.value) {
-                winner = intents.get(i);
-            }
-        }
+    public void apply(KeyController ctrl) {
+        if (intents.isEmpty() || ctrl == null) return;
+        MovementIntent win = intents.get(0);
+        for (int j = 1; j < intents.size(); j++) if (intents.get(j).priority.value > win.priority.value) win = intents.get(j);
         intents.clear();
-        lastWinner = winner;
-
-        if (winner.priority == MovementIntent.Priority.DODGE || winner.priority == MovementIntent.Priority.CLUTCH) {
-            ctrl.moveToward(winner.direction, winner.sprint, winner.wantsJump(), winner.sneak);
-        } else if (winner.priority == MovementIntent.Priority.CRIT) {
-            ctrl.moveToward(winner.direction, winner.sprint, winner.wantsJump(), winner.sneak);
-        } else if (winner.priority == MovementIntent.Priority.CHASE) {
-            ctrl.supplementForward(winner.sprint);
-            if (winner.wantsJump()) ctrl.supplementJump();
-        } else if (winner.priority == MovementIntent.Priority.COMBAT) {
-            // Combat strafe / melee dodge: use direction-aware supplement
-            ctrl.supplementDirection(winner.direction, winner.sprint);
-            if (winner.wantsJump()) ctrl.supplementJump();
-        } else {
-            // PARKOUR, AUTO_WALK: forward supplement only
-            ctrl.supplementForward(winner.sprint);
-            if (winner.wantsJump()) ctrl.supplementJump();
+        last = win;
+        if (win.priority.value >= 95) { // DODGE/CLUTCH override
+            ctrl.moveToward(win.dir, win.sprint, win.wantsJump(), win.sneak);
+        } else { // CHASE/PARKOUR/AUTO_WALK supplement (preserves A/D)
+            ctrl.supplementForward(win.sprint);
+            if (win.wantsJump()) ctrl.supplementJump();
         }
     }
 
-    /** Get the last resolved winner without clearing intents. */
-    public MovementIntent getCurrentIntent() {
+    public MovementIntent getCurrent() {
         if (!intents.isEmpty()) {
             MovementIntent best = intents.get(0);
-            for (int i = 1; i < intents.size(); i++) {
-                if (intents.get(i).priority.value > best.priority.value) best = intents.get(i);
-            }
+            for (int j = 1; j < intents.size(); j++) if (intents.get(j).priority.value > best.priority.value) best = intents.get(j);
             return best;
         }
-        return lastWinner;
+        return last;
     }
 }

@@ -2,37 +2,36 @@ package shinigami.movement;
 
 import net.minecraft.world.phys.Vec3;
 
+/**
+ * MovementIntent — Original, extensive, perfect. Phase 0 bus.
+ * DODGE 100 > CLUTCH 95 > CHASE 50 > COMBAT 30 > PARKOUR 20 > AUTO_WALK 10
+ */
 public class MovementIntent {
     public enum Priority {
-        DODGE(100), CLUTCH(95), CRIT(70), CHASE(50), COMBAT(30), PARKOUR(20), AUTO_WALK(10);
+        DODGE(100), CLUTCH(95), CHASE(50), COMBAT(30), PARKOUR(20), AUTO_WALK(10);
         public final int value;
         Priority(int v) { this.value = v; }
-        public boolean overrides(Priority other) { return this.value > other.value; }
     }
-
-    public enum JumpType {
-        NONE, MICRO_HOP, COMBAT_HOP, GAP_JUMP, CLIMB_JUMP, DODGE_JUMP, TOWER_JUMP, REVERSE_JUMP
-    }
+    public enum JumpType { NONE, GAP_JUMP, DODGE_JUMP, CLUTCH_JUMP, TOWER_JUMP }
 
     public final Priority priority;
-    public final Vec3 direction;
+    public final Vec3 dir;
     public final boolean sprint;
-    public final JumpType jumpType;
+    public final JumpType jump;
     public final boolean sneak;
-    public final int durationTicks;
+    public final int duration;
     public final String reason;
 
-    public MovementIntent(Priority priority, Vec3 direction, boolean sprint, JumpType jump, boolean sneak, int duration, String reason) {
-        this.priority = priority;
-        this.direction = direction != null && direction.lengthSqr() > 0.01 ? direction.normalize() : Vec3.ZERO;
+    public MovementIntent(Priority p, Vec3 d, boolean sprint, JumpType j, boolean sneak, int dur, String r) {
+        this.priority = p;
+        this.dir = d != null && d.lengthSqr() > 1e-6 ? d.normalize() : Vec3.ZERO;
         this.sprint = sprint;
-        this.jumpType = jump;
+        this.jump = j != null ? j : JumpType.NONE;
         this.sneak = sneak;
-        this.durationTicks = Math.max(1, duration);
-        this.reason = reason != null ? reason : "generic";
+        this.duration = Math.max(1, dur);
+        this.reason = r != null ? r : "generic";
     }
 
-    public boolean hasMovement() { return direction.lengthSqr() > 0.01; }
-    public boolean wantsJump() { return jumpType != JumpType.NONE; }
-    public boolean wantsSprint() { return sprint; }
+    public boolean hasMovement() { return dir.lengthSqr() > 1e-6; }
+    public boolean wantsJump() { return jump != JumpType.NONE; }
 }
