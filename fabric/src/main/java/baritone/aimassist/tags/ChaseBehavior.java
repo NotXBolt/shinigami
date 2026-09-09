@@ -214,10 +214,9 @@ public class ChaseBehavior {
             && !mc.player.isInLava()
             && distance > 2.0;
 
-        // ─── Aggressive jump: gap, obstacle, or just because ───
-        boolean jump = gapAhead || pathBlocked || oneBlockObstacle
-            || (targetAbove && mc.player.onGround())
-            || (!mc.player.onGround() || mc.player.isUnderWater());
+        // ─── Aggressive parkour: perfect edge detection (inspired by better-auto-jump + Oogabooga) ───
+        // Jump only when needed: gap at edge, 1-block obstacle, or target above — never spam in air
+        boolean jump = gapAhead || pathBlocked || oneBlockObstacle || (targetAbove && mc.player.onGround());
 
         // If there's a 1-block obstacle ahead and no sprint momentum: jump to clear it
         if (oneBlockObstacle && mc.player.onGround() && !jump) {
