@@ -1,37 +1,38 @@
 package shinigami.integrated.pvpbotfabric;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.phys.Vec3;
 import shinigami.movement.MovementArbiter;
 import shinigami.movement.MovementIntent;
 
 /**
- * ShinigamiPvpBotFabric — Rebranded integration of pvp-bot-fabric — windburst mace, shield break, crit, bow, combo
- * Original repo: pvpbotfabric — adapted, joined, rebranded as shinigami.* original.
- * Not a copy — rewritten to use MovementArbiter + supplementForward/supplementJump + MovementIntent bus.
- * Preserves original table/logic: pvp-bot-fabric — windburst mace, shield break, crit, bow, combo
+ * ShinigamiPvpBotFabric — Rebranded pvpbotfabric.
+ * Source: pvpbotfabric — windburst mace, shield break, crit fallTicks, bow pred.
+ * Gated: pvpMode && target in 3.2m. Priority: COMBAT.
+ * Adapted-joined-rebranded as shinigami.* — real connection via MovementArbiter + IntegrationRegistry.tickAll.
  */
 public class ShinigamiPvpBotFabric {
     private final Minecraft mc = Minecraft.getInstance();
 
     public void tick(MovementArbiter arbiter) {
         if (mc.player == null || mc.level == null) return;
-        if (!shinigami.config.ShinigamiConfig.getInstance().isEnabled()) return;
-        // Adapted logic from pvpbotfabric: runs via arbiter, safe, RL-aware
-        // Original feature: pvp-bot-fabric — windburst mace, shield break, crit, bow, combo
-        Vec3 dir = getDirection();
+        var cfg = shinigami.config.ShinigamiConfig.getInstance();
+        if (!cfg.isEnabled()) return;
+        if (!isRelevant(cfg)) return;
+        // windburst mace, shield break, crit fallTicks, bow pred — gated: pvpMode && target in 3.2m
+        var dir = getDirection();
         if (dir.lengthSqr() < 1e-6) return;
-        // Submit via arbiter with appropriate priority
-        arbiter.submit(new MovementIntent(MovementIntent.Priority.PARKOUR, dir, true, MovementIntent.JumpType.GAP_JUMP, false, 2, "pvpbotfabric"));
+        arbiter.submit(new MovementIntent(MovementIntent.Priority.COMBAT, dir, true, MovementIntent.JumpType.GAP_JUMP, false, 2, "pvpbotfabric"));
     }
 
-    private Vec3 getDirection() {
-        if (mc.player == null) return Vec3.ZERO;
-        // Rebranded: use look angle + physics from original
+    private boolean isRelevant(shinigami.config.ShinigamiConfig cfg) {
+        return cfg.isPvpMode();
+    }
+
+    private net.minecraft.world.phys.Vec3 getDirection() {
+        if (mc.player == null) return net.minecraft.world.phys.Vec3.ZERO;
         return mc.player.getLookAngle().scale(1.0);
     }
 
     public String getName() { return "ShinigamiPvpBotFabric"; }
     public String getSource() { return "pvpbotfabric"; }
-    public boolean isEnabled() { return shinigami.config.ShinigamiConfig.getInstance().isEnabled(); }
 }

@@ -1,7 +1,7 @@
 package shinigami.gui;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.AbstractSliderButton;
@@ -13,7 +13,8 @@ import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 
 /**
- * ShinigamiScreen — Original, 1.21.1 compatible, demon for sure.
+ * ShinigamiScreen — Original, 26.1 compatible (GuiGraphicsExtractor + extractRenderState).
+ * Single mod GUI — all settings in one place, each with hover description at bottom.
  * Tabs: MAIN (Crit/Combo/Mace/Bow + Movement/Dodge/PvP + Clutch/Eat/Heal + RL/Safe)
  *        AIM (Range/FOV/Detect + target filters)
  *        CHASE (hunt/chase/kill)
@@ -123,8 +124,10 @@ public class ShinigamiScreen extends Screen {
         }).bounds(cx+5,y+h*2,75,16).build());
         addRenderableWidget(Button.builder(Component.literal("Status"),b->{
             String chase=cfg.getChaseTargetName();
-            if (Minecraft.getInstance().player!=null) Minecraft.getInstance().player.displayClientMessage(Component.literal(
-                "§6[Shinigami] "+(cfg.isEnabled()?"§aON":"§cOFF")+" Dodge:"+(cfg.isAutoDodge()?"§aON":"§cOFF")+(chase!=null?" §b"+chase:"")),false);
+            try {
+                if (Minecraft.getInstance().player!=null) Minecraft.getInstance().player.sendSystemMessage(Component.literal(
+                    "§6[Shinigami] "+(cfg.isEnabled()?"§aON":"§cOFF")+" Dodge:"+(cfg.isAutoDodge()?"§aON":"§cOFF")+(chase!=null?" §b"+chase:"")));
+            } catch (Exception ignored) {}
         }).bounds(cx-40,y+h*3,80,16).build());
     }
     private void addSettings(int cx,int y,int h){
@@ -152,7 +155,7 @@ public class ShinigamiScreen extends Screen {
             case "Crit" -> "§7Crit: §f1-tick burst fall crit — jumps to land 0.848 damage (reflex)";
             case "Combo" -> "§7Combo: §fhit-chain 2+ in 900ms — W-tap timing (pvp-bot)";
             case "Mace" -> "§7Mace: §ffall smash >2 blocks + windburst tracking (pvp-bot)";
-            case "Bow" -> "§7Bow: §fpredictive intercept 5 ticks — aims ahead (pvp-bot+ Dodger)";
+            case "Bow" -> "§7Bow: §fpredictive intercept 5 ticks — aims ahead (pvp-bot + Dodger)";
             case "Movement" -> "§7Movement: §fWASD supplement chase — direct yaw, no weave (Oogabooga)";
             case "Dodge" -> "§7Dodge: §f3-layer predictive RL — 19 threats, 1-block safe perp (Dodger)";
             case "PvP" -> "§7PvP: §ffull scenario mode — enables all combat when ON";
@@ -171,25 +174,39 @@ public class ShinigamiScreen extends Screen {
             default -> hoverDesc;
         };
     }
-    @Override public void render(GuiGraphics g,int mx,int my,float pt){
-        super.render(g,mx,my,pt);
-        var font=Minecraft.getInstance().font;
-        String title="§l§6SHINIGAMI §7v1.0.5 "+(cfg.isEnabled()?"§aON":"§cOFF")+" §8— single mod, 22 repos rebranded";
-        g.drawCenteredString(font,title,width/2,0,0xFFFFFF);
-        // hover detection for description
+
+    @Override
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+        var font = Minecraft.getInstance().font;
+        String title = "§l§6SHINIGAMI §7v1.0.5 " + (cfg.isEnabled() ? "§aON" : "§cOFF") + " §8— single mod, 22 repos";
+        try {
+            graphics.text(font, Component.literal(title),
+                (width - font.width("SHINIGAMI v1.0.5")) / 2, 0, 0xFFFFFF);
+        } catch (Exception ignored) {}
+        // hover description — resolve before super.extractRenderState draws widgets
         String cur = hoverDesc;
-        for(var w: children()){
-            if(w instanceof net.minecraft.client.gui.components.AbstractWidget aw && aw.isMouseOver(mx,my)){
-                String lbl = aw.getMessage().getString().replace("✔ ","").replace("✗ ","").replace("§a","").replace("§7","").replace("§c","").trim();
-                // try extract label
-                for(String k: new String[]{"Crit","Combo","Mace","Bow","Movement","Dodge","PvP","Clutch","Eat","Heal","Safe","RL","HUD","Range","Detect","FOV","Players","Hostile","Passive"}){
-                    if(lbl.contains(k)){ cur = descFor(k); break; }
+        try {
+            for (var w : children()) {
+                if (w instanceof net.minecraft.client.gui.components.AbstractWidget aw) {
+                    try {
+                        if (!aw.isMouseOver(mouseX, mouseY)) continue;
+                    } catch (Exception ignored) { continue; }
+                    String lbl;
+                    try { lbl = aw.getMessage().getString(); } catch (Exception ignored) { continue; }
+                    lbl = lbl.replace("✔ ", "").replace("✗ ", "").replace("§a", "").replace("§7", "").replace("§c", "").trim();
+                    for (String k : new String[]{"Crit","Combo","Mace","Bow","Movement","Dodge","PvP","Clutch","Eat","Heal","Safe","RL","HUD","Range","Detect","FOV","Players","Hostile","Passive"}) {
+                        if (lbl.contains(k)) { cur = descFor(k); break; }
+                    }
                 }
             }
-        }
-        // description at bottom
-        g.drawCenteredString(font, cur, width/2, height-12, 0xAAAAAA);
-        g.drawCenteredString(font, "§8R=toggle §7| §8G=gui §7| §8Single mod — all repos joined via IntegrationRegistry", width/2, height-24, 0x888888);
+        } catch (Exception ignored) {}
+        try {
+            graphics.text(font, Component.literal(cur), width/2 - font.width(cur)/2, height-12, 0xAAAAAA);
+            graphics.text(font, Component.literal("§8R=toggle §7| §8G=gui §7| §8Single mod — all repos via IntegrationRegistry"), width/2 - 140, height-24, 0x888888);
+        } catch (Exception ignored) {}
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
+
     @Override public void onClose(){ Minecraft.getInstance().setScreen(parent); }
 }

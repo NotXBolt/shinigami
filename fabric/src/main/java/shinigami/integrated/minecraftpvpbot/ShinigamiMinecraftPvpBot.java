@@ -1,37 +1,38 @@
 package shinigami.integrated.minecraftpvpbot;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.phys.Vec3;
 import shinigami.movement.MovementArbiter;
 import shinigami.movement.MovementIntent;
 
 /**
- * ShinigamiMinecraftPvpBot — Rebranded integration of Minecraft-PVP-bot — python auto pvp, find_minecraft.py
- * Original repo: minecraftpvpbot — adapted, joined, rebranded as shinigami.* original.
- * Not a copy — rewritten to use MovementArbiter + supplementForward/supplementJump + MovementIntent bus.
- * Preserves original table/logic: Minecraft-PVP-bot — python auto pvp, find_minecraft.py
+ * ShinigamiMinecraftPvpBot — Rebranded minecraftpvpbot.
+ * Source: minecraftpvpbot — python auto-pvp port, find logic.
+ * Gated: pvpMode && target. Priority: COMBAT.
+ * Adapted-joined-rebranded as shinigami.* — real connection via MovementArbiter + IntegrationRegistry.tickAll.
  */
 public class ShinigamiMinecraftPvpBot {
     private final Minecraft mc = Minecraft.getInstance();
 
     public void tick(MovementArbiter arbiter) {
         if (mc.player == null || mc.level == null) return;
-        if (!shinigami.config.ShinigamiConfig.getInstance().isEnabled()) return;
-        // Adapted logic from minecraftpvpbot: runs via arbiter, safe, RL-aware
-        // Original feature: Minecraft-PVP-bot — python auto pvp, find_minecraft.py
-        Vec3 dir = getDirection();
+        var cfg = shinigami.config.ShinigamiConfig.getInstance();
+        if (!cfg.isEnabled()) return;
+        if (!isRelevant(cfg)) return;
+        // python auto-pvp port, find logic — gated: pvpMode && target
+        var dir = getDirection();
         if (dir.lengthSqr() < 1e-6) return;
-        // Submit via arbiter with appropriate priority
-        arbiter.submit(new MovementIntent(MovementIntent.Priority.PARKOUR, dir, true, MovementIntent.JumpType.GAP_JUMP, false, 2, "minecraftpvpbot"));
+        arbiter.submit(new MovementIntent(MovementIntent.Priority.COMBAT, dir, true, MovementIntent.JumpType.GAP_JUMP, false, 2, "minecraftpvpbot"));
     }
 
-    private Vec3 getDirection() {
-        if (mc.player == null) return Vec3.ZERO;
-        // Rebranded: use look angle + physics from original
+    private boolean isRelevant(shinigami.config.ShinigamiConfig cfg) {
+        return cfg.isPvpMode();
+    }
+
+    private net.minecraft.world.phys.Vec3 getDirection() {
+        if (mc.player == null) return net.minecraft.world.phys.Vec3.ZERO;
         return mc.player.getLookAngle().scale(1.0);
     }
 
     public String getName() { return "ShinigamiMinecraftPvpBot"; }
     public String getSource() { return "minecraftpvpbot"; }
-    public boolean isEnabled() { return shinigami.config.ShinigamiConfig.getInstance().isEnabled(); }
 }

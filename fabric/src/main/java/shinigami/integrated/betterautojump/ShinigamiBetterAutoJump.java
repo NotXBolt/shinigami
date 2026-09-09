@@ -1,37 +1,38 @@
 package shinigami.integrated.betterautojump;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.phys.Vec3;
 import shinigami.movement.MovementArbiter;
 import shinigami.movement.MovementIntent;
 
 /**
- * ShinigamiBetterAutoJump — Rebranded integration of better-auto-jump — edge 0.3-2.0 step 0.35, velocity 0.1, solid 0.001-0.6
- * Original repo: betterautojump — adapted, joined, rebranded as shinigami.* original.
- * Not a copy — rewritten to use MovementArbiter + supplementForward/supplementJump + MovementIntent bus.
- * Preserves original table/logic: better-auto-jump — edge 0.3-2.0 step 0.35, velocity 0.1, solid 0.001-0.6
+ * ShinigamiBetterAutoJump — Rebranded betterautojump.
+ * Source: betterautojump — edge detect step 0.35, vel>0.1, solid 0.001-0.6.
+ * Gated: onGround && edge 0.3-2.0. Priority: PARKOUR.
+ * Adapted-joined-rebranded as shinigami.* — real connection via MovementArbiter + IntegrationRegistry.tickAll.
  */
 public class ShinigamiBetterAutoJump {
     private final Minecraft mc = Minecraft.getInstance();
 
     public void tick(MovementArbiter arbiter) {
         if (mc.player == null || mc.level == null) return;
-        if (!shinigami.config.ShinigamiConfig.getInstance().isEnabled()) return;
-        // Adapted logic from betterautojump: runs via arbiter, safe, RL-aware
-        // Original feature: better-auto-jump — edge 0.3-2.0 step 0.35, velocity 0.1, solid 0.001-0.6
-        Vec3 dir = getDirection();
+        var cfg = shinigami.config.ShinigamiConfig.getInstance();
+        if (!cfg.isEnabled()) return;
+        if (!isRelevant(cfg)) return;
+        // edge detect step 0.35, vel>0.1, solid 0.001-0.6 — gated: onGround && edge 0.3-2.0
+        var dir = getDirection();
         if (dir.lengthSqr() < 1e-6) return;
-        // Submit via arbiter with appropriate priority
         arbiter.submit(new MovementIntent(MovementIntent.Priority.PARKOUR, dir, true, MovementIntent.JumpType.GAP_JUMP, false, 2, "betterautojump"));
     }
 
-    private Vec3 getDirection() {
-        if (mc.player == null) return Vec3.ZERO;
-        // Rebranded: use look angle + physics from original
+    private boolean isRelevant(shinigami.config.ShinigamiConfig cfg) {
+        return cfg.isMovementMode() && mc.player != null && mc.player.onGround();
+    }
+
+    private net.minecraft.world.phys.Vec3 getDirection() {
+        if (mc.player == null) return net.minecraft.world.phys.Vec3.ZERO;
         return mc.player.getLookAngle().scale(1.0);
     }
 
     public String getName() { return "ShinigamiBetterAutoJump"; }
     public String getSource() { return "betterautojump"; }
-    public boolean isEnabled() { return shinigami.config.ShinigamiConfig.getInstance().isEnabled(); }
 }

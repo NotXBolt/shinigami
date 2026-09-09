@@ -1,7 +1,5 @@
 package shinigami;
 
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.Minecraft;
 import shinigami.combat.*;
 import shinigami.config.ShinigamiConfig;
@@ -17,6 +15,7 @@ import shinigami.util.KeyController;
 /**
  * ShinigamiMod — Total from scratch, original, Phase 0+ with GUI, RL, Safe.
  * v1.0.5 — all 22 repos integrated, R toggle, G GUI, not auto-run on world load, safe chase/dodge.
+ * NOTE 26.1: no Fabric KeyBindingHelper dep — keys polled via GLFW in ShinigamiKeybinds.tick().
  */
 public class ShinigamiMod implements ClientModInitializer {
 
@@ -46,8 +45,7 @@ public class ShinigamiMod implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         init();
-        try { KeyBindingHelper.registerKeyBinding(ShinigamiKeybinds.TOGGLE); } catch (Exception ignored){}
-        try { KeyBindingHelper.registerKeyBinding(ShinigamiKeybinds.OPEN_GUI); } catch (Exception ignored){}
+        // No KeyBindingHelper — 26.1 + no fabric-api dep. GLFW polling in tick handles R/G.
         learner.setLearningRate(config.getRlLearningRate());
         learner.setDiscount(config.getRlDiscount());
     }

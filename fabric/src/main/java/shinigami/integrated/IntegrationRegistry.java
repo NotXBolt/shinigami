@@ -28,7 +28,7 @@ public class IntegrationRegistry {
         modules.add(new shinigami.integrated.fabric.ShinigamiFabric());
         modules.add(new shinigami.integrated.yarn.ShinigamiYarn());
         modules.add(new shinigami.integrated.fabricautoclicker.ShinigamiFabricAutoClicker());
-        modules.add(new shinigami.integrated.macebot.ShinigamiMaceBot());
+        modules.add(new shinigami.integrated.macebot.ShinigamiMacebot());
         modules.add(new shinigami.integrated.blockfighter.ShinigamiBlockfighter());
         modules.add(new shinigami.integrated.unionclef.ShinigamiUnionclef());
         modules.add(new shinigami.integrated.enthusiaautoclicker.ShinigamiEnthusiaAutoClicker());

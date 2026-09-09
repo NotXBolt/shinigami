@@ -1,37 +1,38 @@
 package shinigami.integrated.parkourcalculator;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.phys.Vec3;
 import shinigami.movement.MovementArbiter;
 import shinigami.movement.MovementIntent;
 
 /**
- * ShinigamiParkourCalculator — Rebranded integration of ParkourCalculator — physics 0.91/0.98/0.08, JumpArcPredictor. Adapted from ParkourCalculator
- * Original repo: parkourcalculator — adapted, joined, rebranded as shinigami.* original.
- * Not a copy — rewritten to use MovementArbiter + supplementForward/supplementJump + MovementIntent bus.
- * Preserves original table/logic: ParkourCalculator — physics 0.91/0.98/0.08, JumpArcPredictor. Adapted from ParkourCalculator
+ * ShinigamiParkourCalculator — Rebranded parkourcalculator.
+ * Source: parkourcalculator — physics 0.91 ground / 0.98 air / gravity 0.08.
+ * Gated: moving && jump needed. Priority: PARKOUR.
+ * Adapted-joined-rebranded as shinigami.* — real connection via MovementArbiter + IntegrationRegistry.tickAll.
  */
 public class ShinigamiParkourCalculator {
     private final Minecraft mc = Minecraft.getInstance();
 
     public void tick(MovementArbiter arbiter) {
         if (mc.player == null || mc.level == null) return;
-        if (!shinigami.config.ShinigamiConfig.getInstance().isEnabled()) return;
-        // Adapted logic from parkourcalculator: runs via arbiter, safe, RL-aware
-        // Original feature: ParkourCalculator — physics 0.91/0.98/0.08, JumpArcPredictor. Adapted from ParkourCalculator
-        Vec3 dir = getDirection();
+        var cfg = shinigami.config.ShinigamiConfig.getInstance();
+        if (!cfg.isEnabled()) return;
+        if (!isRelevant(cfg)) return;
+        // physics 0.91 ground / 0.98 air / gravity 0.08 — gated: moving && jump needed
+        var dir = getDirection();
         if (dir.lengthSqr() < 1e-6) return;
-        // Submit via arbiter with appropriate priority
         arbiter.submit(new MovementIntent(MovementIntent.Priority.PARKOUR, dir, true, MovementIntent.JumpType.GAP_JUMP, false, 2, "parkourcalculator"));
     }
 
-    private Vec3 getDirection() {
-        if (mc.player == null) return Vec3.ZERO;
-        // Rebranded: use look angle + physics from original
+    private boolean isRelevant(shinigami.config.ShinigamiConfig cfg) {
+        return cfg.isMovementMode() && mc.player != null && !mc.player.onGround();
+    }
+
+    private net.minecraft.world.phys.Vec3 getDirection() {
+        if (mc.player == null) return net.minecraft.world.phys.Vec3.ZERO;
         return mc.player.getLookAngle().scale(1.0);
     }
 
     public String getName() { return "ShinigamiParkourCalculator"; }
     public String getSource() { return "parkourcalculator"; }
-    public boolean isEnabled() { return shinigami.config.ShinigamiConfig.getInstance().isEnabled(); }
 }
