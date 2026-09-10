@@ -39,7 +39,7 @@ public class CritAssist {
             if (mc.player.onGround()) {
                 critPending = false;
                 fallTicks = 0;
-            } else if (mc.player.getVelocity().y < 0) {
+            } else if (mc.player.getDeltaMovement().y < 0) {
                 fallTicks++;
             } else {
                 fallTicks = 0;
@@ -54,7 +54,7 @@ public class CritAssist {
         if (mc.player.isInWater() || mc.player.isInLava()) return false;
         if (mc.player.isSprinting()) return false;
         if (mc.player.onGround()) return false;
-        if (!critPending || mc.player.getVelocity().y >= 0) return false;
+        if (!critPending || mc.player.getDeltaMovement().y >= 0) return false;
         if (fallTicks < MIN_FALL_TICKS) return false;
 
         double dist = mc.player.distanceTo(target);
@@ -98,7 +98,7 @@ public class CritAssist {
         if (mc.player == null) return false;
         return !mc.player.onGround() && !mc.player.isSprinting()
             && !mc.player.isInWater() && !mc.player.onClimbable()
-            && mc.player.getVelocity().y < 0;
+            && mc.player.getDeltaMovement().y < 0;
     }
 
     public boolean justJumped() {
