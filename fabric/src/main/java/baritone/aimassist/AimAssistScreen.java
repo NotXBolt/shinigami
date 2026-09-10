@@ -88,6 +88,9 @@ public class AimAssistScreen extends Screen {
         addToggle(cx - 80, y + h * 2, "Clutch", config.isAutoClutch(), config::setAutoClutch, 75);
         addToggle(cx, y + h * 2, "Eat", config.isAutoEat(), config::setAutoEat, 75);
         addToggle(cx + 80, y + h * 2, "Heal", config.isAutoHeal(), config::setAutoHeal, 75);
+        // Row 4: v1.0.7 — AutoWeapon (use given weapon unless ON → RL/class switch) + RL (real Q-learning)
+        addToggle(cx - 80, y + h * 3, "AutoWeapon", config.isAutoWeapon(), config::setAutoWeapon, 75);
+        addToggle(cx, y + h * 3, "RL", config.isRlLearning(), config::setRlLearning, 75);
     }
 
     // ═══════════ AIM ═══════════

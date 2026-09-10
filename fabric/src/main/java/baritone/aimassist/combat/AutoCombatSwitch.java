@@ -2,7 +2,9 @@ package baritone.aimassist.combat;
 
 import baritone.api.utils.Rotation;
 import baritone.aimassist.AimAssistConfig;
+import baritone.aimassist.AimAssistMod;
 import baritone.aimassist.AimAssistModule;
+import baritone.aimassist.learning.ReinforcementLearner;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.tags.ItemTags;
@@ -32,6 +34,10 @@ public class AutoCombatSwitch {
         if (!config.isPvpMode() && !config.isChaseMode() && !config.isAutoMode()) return;
         if (mc.player.isUsingItem()) return;
 
+        // "Use whatever weapon we give it unless auto weapon on."
+        // When autoWeapon == false: NEVER route/slot-switch. Attack with the held item.
+        if (!config.isAutoWeapon()) return;
+
         LivingEntity target = findBestTarget();
 
         if (target == null) {
@@ -42,6 +48,20 @@ public class AutoCombatSwitch {
         double dist = mc.player.distanceTo(target);
 
         if (System.currentTimeMillis() - lastSwitchTime < SWITCH_COOLDOWN_MS) return;
+
+        // RL weapon-class bias when autoWeapon is ON and learner has signal.
+        if (config.isRlLearning()) {
+            AimAssistMod mod = AimAssistMod.getInstance();
+            if (mod != null && mod.getModule() != null
+                && mod.getModule().getReinforcementLearner().getTotalSteps() > 200) {
+                int weaponAction = mod.getModule().getReinforcementLearner().choose(
+                    ReinforcementLearner.Space.WEAPON);
+                if (weaponAction == 1 && switchToBestAxe()) return;          // axe class
+                if (weaponAction == 2 && switchToBestSword()) return;        // sword class
+                if (weaponAction == 3 && switchToBestMace()) return;         // mace class
+                if (weaponAction == 4 && switchToBow()) return;              // ranged class
+            }
+        }
 
         if (target.isUsingItem()) {
             ItemStack using = target.getUseItem();
@@ -148,6 +168,48 @@ public class AutoCombatSwitch {
         for (int i = 0; i < 9; i++) {
             ItemStack stack = mc.player.getInventory().getItem(i);
             if (stack.is(ItemTags.AXES)) {
+                double dmg = getAttackDamage(stack);
+                if (dmg > bestDmg) {
+                    bestDmg = dmg;
+                    best = i;
+                }
+            }
+        }
+        if (best != -1) {
+            mc.player.getInventory().setSelectedSlot(best);
+            lastSwitchTime = System.currentTimeMillis();
+            return true;
+        }
+        return false;
+    }
+
+    private boolean switchToBestSword() {
+        int best = -1;
+        double bestDmg = 0;
+        for (int i = 0; i < 9; i++) {
+            ItemStack stack = mc.player.getInventory().getItem(i);
+            if (stack.is(ItemTags.SWORDS)) {
+                double dmg = getAttackDamage(stack);
+                if (dmg > bestDmg) {
+                    bestDmg = dmg;
+                    best = i;
+                }
+            }
+        }
+        if (best != -1) {
+            mc.player.getInventory().setSelectedSlot(best);
+            lastSwitchTime = System.currentTimeMillis();
+            return true;
+        }
+        return false;
+    }
+
+    private boolean switchToBestMace() {
+        int best = -1;
+        double bestDmg = 0;
+        for (int i = 0; i < 9; i++) {
+            ItemStack stack = mc.player.getInventory().getItem(i);
+            if (stack.is(Items.MACE)) {
                 double dmg = getAttackDamage(stack);
                 if (dmg > bestDmg) {
                     bestDmg = dmg;

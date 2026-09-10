@@ -308,6 +308,25 @@ public class AimAssistConfig implements IAimConfig {
     public int getBreathMargin() { return breathMargin; }
     public void setBreathMargin(int m) { this.breathMargin = m; }
 
+    // autoWeapon - use whatever weapon player holds (OFF) vs RL/class auto-switching (ON)
+    private boolean autoWeapon = false;
+    public boolean isAutoWeapon() { return autoWeapon; }
+    public void setAutoWeapon(boolean a) { this.autoWeapon = a; }
+
+    // rlLearning - real Q-learning over dodge/engage/strafe/weapon decisions
+    private boolean rlLearning = true;
+    private double rlAlpha = 0.1;
+    private double rlGamma = 0.9;
+    private double rlEpsilon = 0.3;
+    public boolean isRlLearning() { return rlLearning; }
+    public void setRlLearning(boolean r) { this.rlLearning = r; }
+    public double getRlAlpha() { return rlAlpha; }
+    public void setRlAlpha(double a) { this.rlAlpha = a; }
+    public double getRlGamma() { return rlGamma; }
+    public void setRlGamma(double g) { this.rlGamma = g; }
+    public double getRlEpsilon() { return rlEpsilon; }
+    public void setRlEpsilon(double e) { this.rlEpsilon = e; }
+
     // --- Area Management ---
     private final Map<String, Area> areas = new ConcurrentHashMap<>();
 

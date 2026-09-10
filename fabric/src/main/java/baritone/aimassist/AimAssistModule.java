@@ -8,6 +8,7 @@ import baritone.aimassist.aim.AimController;
 import baritone.aimassist.combat.*;
 import baritone.aimassist.targeting.TargetManager;
 import baritone.aimassist.prediction.MovementPredictor;
+import baritone.aimassist.learning.ReinforcementLearner;
 import baritone.aimassist.tags.TagSystem;
 import baritone.aimassist.tags.ChaseBehavior;
 import baritone.aimassist.tags.SmartTaskExecutor;
@@ -61,6 +62,7 @@ public class AimAssistModule implements IAimAssist {
     private final MovementBrain movementBrain = new MovementBrain();
     private final TerrainAnalyzer terrainAnalyzer = new TerrainAnalyzer();
     private final AirStrafeController airStrafeController = new AirStrafeController();
+    private final ReinforcementLearner reinforcementLearner = new ReinforcementLearner();
 
     private boolean enabled = false;
     private Mode currentMode = Mode.DEMON;
@@ -258,6 +260,17 @@ public class AimAssistModule implements IAimAssist {
                 lastAttackTarget = living;
 
                 boolean attackThisTick = false;
+                boolean rlHold = false;
+
+                // RL gate: engaged (attack) vs waiting when learner has signal.
+                if (config.isRlLearning()
+                    && reinforcementLearner.getTotalSteps() > 200
+                    && reinforcementLearner.bestActionValue(ReinforcementLearner.Space.ENGAGE) > 0.5) {
+                    boolean engage = reinforcementLearner.choose(ReinforcementLearner.Space.ENGAGE)
+                        == ReinforcementLearner.ACT_ATTACK;
+                    // When RL says wait, hold attacks this tick (no return, keep flow).
+                    rlHold = !engage;
+                }
 
                 // ─── MACE MODE (highest priority) ───
                 if (config.isMaceMode() && maceAssist.shouldSmash(living)) {
@@ -325,6 +338,9 @@ public class AimAssistModule implements IAimAssist {
                     }
                 }
 
+                // RL hold overrides everything (learner says wait this situation).
+                if (rlHold) attackThisTick = false;
+
                 if (attackThisTick) {
                     mc.gameMode.attack(mc.player, living);
                     mc.player.swing(InteractionHand.MAIN_HAND);
@@ -332,12 +348,25 @@ public class AimAssistModule implements IAimAssist {
                     if (critMode) critAssist.onAttack();
                     comboTracker.onAttack(living);
 
+                    // RL reward: damage dealt scaled by target HP fraction.
+                    if (config.isRlLearning()) {
+                        float targetHpFrac = living.getMaxHealth() > 0
+                            ? living.getHealth() / living.getMaxHealth() : 0f;
+                        double dmgScale = Math.max(0.2, 1.0 - targetHpFrac);
+                        reinforcementLearner.reward(ReinforcementLearner.Space.ENGAGE, 1.5 + 3.5 * dmgScale);
+                        reinforcementLearner.reward(ReinforcementLearner.Space.WEAPON, 1.0 + 3.0 * dmgScale);
+                    }
+
                     entityHealTicks = 0;
                 }
             }
 
             triggerBot.tick();
             comboTracker.tick();
+
+            // RL housekeeping: sync hyperparams, periodic save.
+            reinforcementLearner.setConfig(config);
+            reinforcementLearner.tickCountdown();
         } catch (Exception e) {
             System.err.println("[Shinigami] Error in tick(): " + e.getMessage());
         }
@@ -482,6 +511,7 @@ public class AimAssistModule implements IAimAssist {
         if (!e) {
             mc.options.keyAttack.setDown(false);
             mc.options.keyUse.setDown(false);
+            reinforcementLearner.save();
         }
     }
     @Override public void toggle() { setEnabled(!enabled); }
@@ -524,6 +554,7 @@ public class AimAssistModule implements IAimAssist {
     public MovementBrain getMovementBrain() { return movementBrain; }
     public MovementArbiter getMovementArbiter() { return movementArbiter; }
     public AirStrafeController getAirStrafeController() { return airStrafeController; }
+    public ReinforcementLearner getReinforcementLearner() { return reinforcementLearner; }
 
     // ─── Combat State ───
     private int wtapCooldown = 0;

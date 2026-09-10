@@ -40,27 +40,27 @@ public class WindBurstAssist {
 
         boolean holdingMace = p.getMainHandItem().is(Items.MACE);
 
-        // Use wind charge item to boost upward when falling with mace
-        // Fire at feet so explosion propels upward
-        if (holdingMace && airTicks > 8 && vel.y < -0.3 && hasWindChargeItem() && windChargeUseCooldown == 0) {
-            useWindChargeAtFeet();
+        // Use charge item (wind charge OR fire charge) to boost upward when
+        // falling with mace. Fire at feet so explosion propels upward.
+        if (holdingMace && airTicks > 8 && vel.y < -0.3 && hasChargeItem() && windChargeUseCooldown == 0) {
+            useChargeAtFeet();
         }
     }
 
-    private boolean hasWindChargeItem() {
+    private boolean hasChargeItem() {
         if (mc.player == null) return false;
         for (int i = 0; i < 9; i++) {
             ItemStack stack = mc.player.getInventory().getItem(i);
-            if (stack.is(Items.WIND_CHARGE)) return true;
+            if (stack.is(Items.WIND_CHARGE) || stack.is(Items.FIRE_CHARGE)) return true;
         }
         return false;
     }
 
-    private void useWindChargeAtFeet() {
+    private void useChargeAtFeet() {
         if (mc.player == null) return;
         for (int i = 0; i < 9; i++) {
             ItemStack stack = mc.player.getInventory().getItem(i);
-            if (stack.is(Items.WIND_CHARGE)) {
+            if (stack.is(Items.WIND_CHARGE) || stack.is(Items.FIRE_CHARGE)) {
                 int prevSlot = mc.player.getInventory().getSelectedSlot();
                 mc.player.getInventory().setSelectedSlot(i);
                 mc.gameMode.useItemOn(mc.player, InteractionHand.MAIN_HAND,
