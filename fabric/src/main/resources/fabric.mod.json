@@ -2,20 +2,27 @@
   "schemaVersion": 1,
   "id": "shinigami",
   "version": "${version}",
+
   "name": "Shinigami",
-  "description": "Shinigami by Saizo — total from scratch, demon for sure, unkillable hunting executioner. v1.0.5 single mod — all 22 repos integrated (Dodger/Kiwi/Oogabooga/ParkourCalculator/cadence/pvp-bot etc) rebranded, RL safe, R/G GUI with descriptions",
-  "authors": ["Saizo"],
+  "description": "Autonomous AI companion — aggressive demon movement & combat. Vision tracking, PID aim, 3-layer dodge, crit/combo/mace/bow, RL-adaptive, chase/kill/farm/portal/repair. Always wins.",
+  "authors": [
+    "Saizo"
+  ],
+
   "license": "LGPL-3.0",
-  "icon": "assets/shinigami/icon.png",
+
   "environment": "*",
   "entrypoints": {
-    "client": ["shinigami.ShinigamiMod"]
+    "client": [
+      "baritone.aimassist.AimAssistMod"
+    ]
   },
   "mixins": [
-      "mixins.shinigami.json"
+      "mixins.baritone.json",
+      "mixins.aimassist.json"
   ],
   "depends": {
-    "fabricloader": ">=0.19.2",
+    "fabricloader": ">=0.18.6",
     "minecraft": ">=26.1 <26.3",
     "fabric-api": ">=0.148.0"
   }
