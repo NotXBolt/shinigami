@@ -104,33 +104,25 @@ public class DodgeSystem {
             if (ctrl != null && dodgeDirection.lengthSqr() > 0.01) {
                 // Re-validate the dodge destination each tick so we never
                 // drift into a newly-appeared enemy or hazard.
+                Vec3 safePos = safeLandingPosition(mc.player.position().add(dodgeDirection.scale(2.5)));
                 // Prioritize RL-learned direction when confident.
                 ReinforcementLearner rl2 = getLearner();
                 if (rl2 != null && rl2.getTotalSteps() > 200
                     && rl2.bestActionValue(ReinforcementLearner.Space.DODGE) > 0.5) {
                     // Use RL-learned dodge direction directly.
-                    Vec3 rlDir = Vec3.ZERO;
                     int rlAction = rl2.choose(ReinforcementLearner.Space.DODGE);
-                    if (rlAction == ReinforcementLearner.ACT_PERPL) rlDir = perpL;
-                    else if (rlAction == ReinforcementLearner.ACT_PERPR) rlDir = perpR;
-                    else if (rlAction == ReinforcementLearner.ACT_CIRCLE_L) rlDir = new Vec3(-dodgeDirection.z, 0, dodgeDirection.x);
-                    else if (rlAction == ReinforcementLearner.ACT_CIRCLE_R) rlDir = new Vec3(dodgeDirection.z, 0, -dodgeDirection.x);
-                    else if (rlAction == ReinforcementLearner.ACT_AWAY) rlDir = dodgeDirection.scale(-1);
-                    if (rlDir.lengthSqr() > 0.01) {
-                        Vec3 safePos = safeLandingPosition(mc.player.position().add(rlDir.scale(2.5)));
-                        if (safePos != null) {
-                            ctrl.moveToward(rlDir, dodgeSprint, dodgeJump && mc.player.onGround(), false);
-                            dodgeDirection = rlDir;
-                            return;
-                        }
-                    }
+                    if (rlAction == ReinforcementLearner.ACT_PERPL) safePos = perpL;
+                    else if (rlAction == ReinforcementLearner.ACT_PERPR) safePos = perpR;
+                    else if (rlAction == ReinforcementLearner.ACT_CIRCLE_L) safePos = new Vec3(-dodgeDirection.z, 0, dodgeDirection.x);
+                    else if (rlAction == ReinforcementLearner.ACT_CIRCLE_R) safePos = new Vec3(dodgeDirection.z, 0, -dodgeDirection.x);
+                    else if (rlAction == ReinforcementLearner.ACT_AWAY) safePos = dodgeDirection.scale(-1);
                 }
                 if (safePos == null) {
                     List<Entity> threats = aggregateThreats();
                     Vec3 fallback = pickSafeDirection(threats, null);
                     if (fallback != null) dodgeDirection = fallback;
                 }
-                ctrl.moveToward(dodgeDirection, dodgeSprint, dodgeJump && mc.player.onGround(), false);
+                ctrl.moveToward(safePos != null ? safePos : dodgeDirection, dodgeSprint, dodgeJump && mc.player.onGround(), false);
             }
             dodgeTicks--;
             if (dodgeTicks == 0) {
