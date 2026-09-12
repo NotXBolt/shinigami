@@ -55,8 +55,8 @@ public class DodgeSystem {
     private static final double PROJ_RANGE = 28.0;
     private static final double MACE_RANGE = 20.0;
     private static final double WITCH_RANGE = 16.0;
-    private static final double THREAT_AGGREGATE_RADIUS = 12.0;
-    private static final double SAFE_CHECK_HORIZONTAL = 2.2;
+    private static final double THREAT_AGGREGATE_RADIUS = 10.0;
+    private static final double SAFE_CHECK_HORIZONTAL = 2.0;
 
     private int shieldBlockCooldown = 0;
     private int witchAlertTicks = 0;
@@ -104,7 +104,27 @@ public class DodgeSystem {
             if (ctrl != null && dodgeDirection.lengthSqr() > 0.01) {
                 // Re-validate the dodge destination each tick so we never
                 // drift into a newly-appeared enemy or hazard.
-                Vec3 safePos = safeLandingPosition(mc.player.position().add(dodgeDirection.scale(2.5)));
+                // Prioritize RL-learned direction when confident.
+                ReinforcementLearner rl2 = getLearner();
+                if (rl2 != null && rl2.getTotalSteps() > 200
+                    && rl2.bestActionValue(ReinforcementLearner.Space.DODGE) > 0.5) {
+                    // Use RL-learned dodge direction directly.
+                    Vec3 rlDir = Vec3.ZERO;
+                    int rlAction = rl2.choose(ReinforcementLearner.Space.DODGE);
+                    if (rlAction == ReinforcementLearner.ACT_PERPL) rlDir = perpL;
+                    else if (rlAction == ReinforcementLearner.ACT_PERPR) rlDir = perpR;
+                    else if (rlAction == ReinforcementLearner.ACT_CIRCLE_L) rlDir = new Vec3(-dodgeDirection.z, 0, dodgeDirection.x);
+                    else if (rlAction == ReinforcementLearner.ACT_CIRCLE_R) rlDir = new Vec3(dodgeDirection.z, 0, -dodgeDirection.x);
+                    else if (rlAction == ReinforcementLearner.ACT_AWAY) rlDir = dodgeDirection.scale(-1);
+                    if (rlDir.lengthSqr() > 0.01) {
+                        Vec3 safePos = safeLandingPosition(mc.player.position().add(rlDir.scale(2.5)));
+                        if (safePos != null) {
+                            ctrl.moveToward(rlDir, dodgeSprint, dodgeJump && mc.player.onGround(), false);
+                            dodgeDirection = rlDir;
+                            return;
+                        }
+                    }
+                }
                 if (safePos == null) {
                     List<Entity> threats = aggregateThreats();
                     Vec3 fallback = pickSafeDirection(threats, null);
@@ -347,6 +367,15 @@ public class DodgeSystem {
         return false;
     }
 
+    /**
+ * checkExplosion — TNT + EndCrystal explosion within blast radius.
+ * Two threat types:
+ *   1) Primed TNT with short fuse (<10 ticks): move away 3 blocks (awayFrom)
+      + verify safe ground. Reward: damage taken → reward(DODGE, -dmg*3).
+ *   2) EndCrystal within 7 blocks: move away 3 blocks + verify safe ground.
+ * Never stand near exploding TNT or crystals — always dodge away with safe landing.
+ * If safe ground not available at 3 blocks, try perp-direction dodge.
+ */
     private boolean checkExplosion() {
         AABB box = getSearchBox(13);
         for (Entity e : mc.level.getEntitiesOfClass(Entity.class, box)) {
@@ -355,6 +384,7 @@ public class DodgeSystem {
                 if (isSafeDodgePosition(mc.player.position().add(away.scale(3)))) {
                     triggerDodge(away, true, true, EXPLOSION_DURATION, "tnt");
                 } else {
+                    // Perpendicular fallback if direct away is unsafe.
                     triggerDodge(perpToThreat(e.position()), true, true, EXPLOSION_DURATION, "tnt-perp");
                 }
                 return true;
@@ -465,16 +495,19 @@ public class DodgeSystem {
             double dist = mc.player.distanceTo(e);
             if (dist > MELEE_RANGE) continue;
 
+            // --- Player with weapon facing us ---
             if (e instanceof Player p && p != mc.player) {
                 boolean hasWeapon = isWeapon(p.getMainHandItem());
-                boolean facingMe = p.getLookAngle().dot(
-                    mc.player.position().subtract(p.getEyePosition()).normalize()) > 0.5;
+                Vec3 toEye = mc.player.position().subtract(p.getEyePosition()).normalize();
+                boolean facingMe = p.getLookAngle().dot(toEye) > 0.5;
                 if (dist < 3.5 && facingMe && hasWeapon && !p.isUsingItem()) {
                     Vec3 dir = pickSafeDirection(threats, p.position());
                     triggerDodge(dir, true, true, MELEE_DURATION, "predict-melee");
                     triggered = true;
                 }
             }
+
+            // --- Monster targeting us ---
             if (e instanceof Monster m && m.getTarget() == mc.player && dist < 3) {
                 Vec3 dir = pickSafeDirection(threats, m.position());
                 triggerDodge(dir, true, true, MELEE_DURATION, "predict-monster");
@@ -484,6 +517,14 @@ public class DodgeSystem {
         return triggered;
     }
 
+    /**
+ * checkWitchPotion — Witch danger within ~16 blocks.
+ * Two sub-situations:
+ *   1) Thrown potion aimed at us: if shielded → raise shield + block; if not shielded → dodge perpendicular away.
+ *   2) Witch entity nearby: set alert ticks 40; if shielded and blocking → face the witch and move toward it (advance), otherwise dodge perpendicular.
+ * Reward: damage taken from potion → reward(DODGE, -dmg*3); dodge survival +0.15/tick.
+ * Important: never stand still blocking witch potions without shield — always dodge perpendicular.
+ */
     private boolean checkWitchPotion() {
         if (mc.level == null) return false;
         AABB box = getSearchBox(WITCH_RANGE);
@@ -492,6 +533,7 @@ public class DodgeSystem {
             Vec3 vel = e.getDeltaMovement();
             Vec3 pos = e.position();
 
+            // --- Thrown potion aimed at us ---
             if (e instanceof AbstractThrownPotion potion && potion.isAlive()) {
                 if (isAimedAtMe(pos, vel)) {
                     if (hasShieldInHotbar()) {
@@ -504,8 +546,10 @@ public class DodgeSystem {
                             0, target.getEntity().getZ() - mc.player.getZ());
                         if (toward.lengthSqr() > 0.01 && isSafeDodgePosition(
                             mc.player.position().add(toward.normalize().scale(3)))) {
+                            // Shield + safe to face: move toward witch to pressure.
                             triggerDodge(toward.normalize(), true, true, 4, "witch-block");
                         } else {
+                            // No safe face → dodge perpendicular away.
                             triggerDodge(perpToThreat(e.position()), true, true, 4, "witch-perp");
                         }
                         return true;
@@ -514,11 +558,13 @@ public class DodgeSystem {
                 break;
             }
 
+            // --- Witch entity nearby (not a thrown potion) ---
             if (e.getType() == net.minecraft.world.entity.EntityType.WITCH && e.isAlive()) {
                 double dist = mc.player.distanceTo(e);
                 if (dist < WITCH_RANGE) {
                     witchAlertTicks = 40;
                     if (hasShieldInHotbar() && mc.player.isBlocking()) {
+                        // Shield up + blocking: advance toward witch to pressure.
                         Vec3 toward = new Vec3(e.getX() - mc.player.getX(), 0, e.getZ() - mc.player.getZ());
                         if (toward.lengthSqr() > 0.01 && isSafeDodgePosition(
                             mc.player.position().add(toward.normalize().scale(3)))) {
@@ -530,6 +576,18 @@ public class DodgeSystem {
                                 dodgeJump = true;
                                 dodgeSprint = true;
                                 lastManeuver = "witch-advance";
+                                return true;
+                            }
+                        }
+                    } else {
+                        // No shield → dodge perpendicular away from witch.
+                        double d = mc.player.distanceTo(e);
+                        if (d < WITCH_RANGE) {
+                            // Pick safe perpendicular direction.
+                            List<Entity> threats = aggregateThreats();
+                            Vec3 dir = pickSafeDirection(threats, e.position());
+                            if (dir != null) {
+                                triggerDodge(dir, true, true, 4, "witch-dodge");
                                 return true;
                             }
                         }

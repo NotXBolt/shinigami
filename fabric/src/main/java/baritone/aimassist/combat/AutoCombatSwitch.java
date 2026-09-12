@@ -49,17 +49,19 @@ public class AutoCombatSwitch {
 
         if (System.currentTimeMillis() - lastSwitchTime < SWITCH_COOLDOWN_MS) return;
 
-        // RL weapon-class bias when autoWeapon is ON and learner has signal.
+        // RL weapon-class bias when autoWeapon is ON.
+        // We do NOT return here — fall through to distance-based switching
+        // so the learner can bias but never block vanilla flow.
         if (config.isRlLearning()) {
             AimAssistMod mod = AimAssistMod.getInstance();
             if (mod != null && mod.getModule() != null
                 && mod.getModule().getReinforcementLearner().getTotalSteps() > 200) {
                 int weaponAction = mod.getModule().getReinforcementLearner().choose(
                     ReinforcementLearner.Space.WEAPON);
-                if (weaponAction == 1 && switchToBestAxe()) return;          // axe class
-                if (weaponAction == 2 && switchToBestSword()) return;        // sword class
-                if (weaponAction == 3 && switchToBestMace()) return;         // mace class
-                if (weaponAction == 4 && switchToBow()) return;              // ranged class
+                if (weaponAction == 1 && switchToBestAxe()) {}          // axe class
+                if (weaponAction == 2 && switchToBestSword()) {}        // sword class
+                if (weaponAction == 3 && switchToBestMace()) {}         // mace class
+                if (weaponAction == 4 && switchToBow()) {}              // ranged class
             }
         }
 

@@ -84,17 +84,11 @@ public class MaceAssist {
 
     private void launchWithChargeAtFeet() {
         if (mc.player == null) return;
-        // Prefer wind charge (better vertical) then fire charge.
+        // Accept both WIND_CHARGE and FIRE_CHARGE.
         int slot = -1;
         for (int i = 0; i < 9; i++) {
             ItemStack stack = mc.player.getInventory().getItem(i);
-            if (stack.is(Items.WIND_CHARGE)) { slot = i; break; }
-        }
-        if (slot == -1) {
-            for (int i = 0; i < 9; i++) {
-                ItemStack stack = mc.player.getInventory().getItem(i);
-                if (stack.is(Items.FIRE_CHARGE)) { slot = i; break; }
-            }
+            if (stack.is(Items.WIND_CHARGE) || stack.is(Items.FIRE_CHARGE)) { slot = i; break; }
         }
         if (slot == -1) return;
 
