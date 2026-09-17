@@ -328,38 +328,38 @@ public class AimAssistConfig implements IAimConfig {
     public void setRlEpsilon(double e) { this.rlEpsilon = e; }
 
     // Combat Intelligence — Ultra Instinct decision engine
-    private boolean combatIntelligenceEnabled = true;
+    // "Master toggle for Ultra Instinct combat AI. Evaluates threat/opportunity/survival scores every tick."
     public boolean isCombatIntelligenceEnabled() { return combatIntelligenceEnabled; }
     public void setCombatIntelligenceEnabled(boolean e) { this.combatIntelligenceEnabled = e; }
 
     // Combo mode settings
-    private boolean comboModeEnabled = false;
+    // "Enables combo system. After 3+ hits, continue combo chain. Max 5 hits. Each hit resets cooldown."
     public boolean isComboModeEnabled() { return comboModeEnabled; }
     public void setComboModeEnabled(boolean e) { this.comboModeEnabled = e; }
-    private String comboType = "sword_bow";
+    // "Preferred combo type. Options: sword_bow, axe_bow, mace_sword, axe_mace, trident_bow."
     public String getComboType() { return comboType; }
     public void setComboType(String t) { this.comboType = t; }
 
     // Exploit settings
-    private boolean attributeSwapEnabled = false;
+    // "Enable attribute swap exploit. Swap strength/speed/resistance mid-combat for temporary buffs."
     public boolean isAttributeSwapEnabled() { return attributeSwapEnabled; }
     public void setAttributeSwapEnabled(boolean e) { this.attributeSwapEnabled = e; }
-    private boolean spearReachEnabled = false;
+    // "Enable spear reach exploit. Extends attack range from 3.5 to 5+ blocks."
     public boolean isSpearReachEnabled() { return spearReachEnabled; }
     public void setSpearReachEnabled(boolean e) { this.spearReachEnabled = e; }
-    private boolean jumpBoostExploitEnabled = false;
+    // "Enable jump boost exploit. Sprint-cancel + jump boost for extended air time and higher smashes."
     public boolean isJumpBoostExploitEnabled() { return jumpBoostExploitEnabled; }
     public void setJumpBoostExploitEnabled(boolean e) { this.jumpBoostExploitEnabled = e; }
-    private boolean speedBoostExploitEnabled = false;
+    // "Enable speed boost exploit. Sprint-cancel + speed potion for faster approach and retreat."
     public boolean isSpeedBoostExploitEnabled() { return speedBoostExploitEnabled; }
     public void setSpeedBoostExploitEnabled(boolean e) { this.speedBoostExploitEnabled = e; }
-    private boolean strengthBoostExploitEnabled = false;
+    // "Enable strength boost exploit. +1.3x attack damage for all melee weapons."
     public boolean isStrengthBoostExploitEnabled() { return strengthBoostExploitEnabled; }
     public void setStrengthBoostExploitEnabled(boolean e) { this.strengthBoostExploitEnabled = e; }
-    private boolean resistanceExploitEnabled = false;
+    // "Enable resistance exploit. Reduced incoming damage for 4-5 seconds."
     public boolean isResistanceExploitEnabled() { return resistanceExploitEnabled; }
     public void setResistanceExploitEnabled(boolean e) { this.resistanceExploitEnabled = e; }
-    private boolean regenExploitEnabled = false;
+    // "Enable regen exploit. Passive health recovery during combat."
     public boolean isRegenExploitEnabled() { return regenExploitEnabled; }
     public void setRegenExploitEnabled(boolean e) { this.regenExploitEnabled = e; }
 

@@ -22,7 +22,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.phys.Vec3;
+import baritone.aimassist.combat.HealSystem;import baritone.aimassist.learning.AdaptiveOpponentModel;import baritone.aimassist.learning.PlayerBehaviorTracker;import net.minecraft.world.phys.Vec3;
 
 public class AimAssistModule implements IAimAssist {
 
@@ -65,6 +65,11 @@ public class AimAssistModule implements IAimAssist {
     private final TerrainAnalyzer terrainAnalyzer = new TerrainAnalyzer();
     private final AirStrafeController airStrafeController = new AirStrafeController();
     private final ReinforcementLearner reinforcementLearner = new ReinforcementLearner();
+
+    // ─── Combat Intelligence Systems ───
+    private final PlayerBehaviorTracker playerBehaviorTracker = new PlayerBehaviorTracker();
+    private final AdaptiveOpponentModel adaptiveOpponentModel = new AdaptiveOpponentModel();
+    private final HealSystem healSystem = new HealSystem();
 
     private boolean enabled = false;
     private Mode currentMode = Mode.DEMON;
