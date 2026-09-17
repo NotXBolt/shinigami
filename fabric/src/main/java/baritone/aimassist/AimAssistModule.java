@@ -468,10 +468,10 @@ public class AimAssistModule implements IAimAssist {
 
     private LivingEntity findNearestAttacker() {
         if (mc.level == null || mc.player == null) return null;
-        double closest = 20;
+        double closest = config.getRange();
         LivingEntity result = null;
         net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(
-            mc.player.getX() - 24, mc.player.getY() - 24, mc.player.getZ() - 24,
+            mc.player.getX() - 6, mc.player.getY() - 6, mc.player.getZ() - 6,
             mc.player.getX() + 24, mc.player.getY() + 24, mc.player.getZ() + 24
         );
         for (Entity e : mc.level.getEntitiesOfClass(Entity.class, box)) {

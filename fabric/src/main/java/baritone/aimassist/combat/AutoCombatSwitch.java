@@ -269,7 +269,7 @@ public class AutoCombatSwitch {
         if (mc.level == null || mc.player == null) return null;
         double closest = config.getRange();
         LivingEntity result = null;
-        double scanRange = Math.max(config.getRange(), 64) + 16;
+        double scanRange = config.getRange() + 4;
         net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(
             mc.player.getX() - scanRange, mc.player.getY() - scanRange, mc.player.getZ() - scanRange,
             mc.player.getX() + scanRange, mc.player.getY() + scanRange, mc.player.getZ() + scanRange

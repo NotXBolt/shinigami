@@ -77,10 +77,10 @@ public class TargetManager {
         List<IAimTarget> targets = new ArrayList<>();
         if (mc.level == null || mc.player == null) return targets;
 
-        double detectRange = config.getDetectionRange();
+        double detectRange = config.getRange();
         Vec3 eyePos = mc.player.getEyePosition();
 
-        AABB scanBox = mc.player.getBoundingBox().inflate(detectRange);
+        AABB scanBox = mc.player.getBoundingBox().inflate(config.getRange());
         for (Entity entity : mc.level.getEntitiesOfClass(LivingEntity.class, scanBox)) {
             if (entity == mc.player) continue;
             if (!entity.isAlive() || entity.isRemoved()) continue;

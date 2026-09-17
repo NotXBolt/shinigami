@@ -208,7 +208,7 @@ public class CombatPeripherals {
         if (mc.level == null || mc.player == null) return null;
         double closest = range;
         LivingEntity result = null;
-        double scanRange = range + 8;
+        double scanRange = range + 3;
         AABB box = new AABB(
             mc.player.getX() - scanRange, mc.player.getY() - scanRange, mc.player.getZ() - scanRange,
             mc.player.getX() + scanRange, mc.player.getY() + scanRange, mc.player.getZ() + scanRange

@@ -51,12 +51,12 @@ public class DodgeSystem {
     private static final int MACE_DURATION = 10;
     private static final int PROJ_DURATION = 6;
     private static final int EXPLOSION_DURATION = 8;
-    private static final double MELEE_RANGE = 4.0;
-    private static final double PROJ_RANGE = 28.0;
-    private static final double MACE_RANGE = 20.0;
-    private static final double WITCH_RANGE = 16.0;
-    private static final double THREAT_AGGREGATE_RADIUS = 10.0;
-    private static final double SAFE_CHECK_HORIZONTAL = 2.0;
+    private static final double MELEE_RANGE = 3.5;
+    private static final double PROJ_RANGE = 16.0;
+    private static final double MACE_RANGE = 10.0;
+    private static final double WITCH_RANGE = 8.0;
+    private static final double THREAT_AGGREGATE_RADIUS = 6.0;
+    private static final double SAFE_CHECK_HORIZONTAL = 1.5;
 
     private int shieldBlockCooldown = 0;
     private int witchAlertTicks = 0;
@@ -107,12 +107,13 @@ public class DodgeSystem {
                 Vec3 safePos = safeLandingPosition(mc.player.position().add(dodgeDirection.scale(2.5)));
                 // Prioritize RL-learned direction when confident.
                 ReinforcementLearner rl2 = getLearner();
-                if (rl2 != null && rl2.getTotalSteps() > 200
-                    && rl2.bestActionValue(ReinforcementLearner.Space.DODGE) > 0.5) {
-                    // Use RL-learned dodge direction directly.
+                boolean useRL = rl2 != null && rl2.getTotalSteps() > 200
+                    && rl2.bestActionValue(ReinforcementLearner.Space.DODGE) > 0.5;
+                if (useRL) {
                     int rlAction = rl2.choose(ReinforcementLearner.Space.DODGE);
-                    if (rlAction == ReinforcementLearner.ACT_PERPL) safePos = perpL;
-                    else if (rlAction == ReinforcementLearner.ACT_PERPR) safePos = perpR;
+                    Vec3 perp = new Vec3(-dodgeDirection.z, 0, dodgeDirection.x);
+                    if (rlAction == ReinforcementLearner.ACT_PERPL) safePos = perp;
+                    else if (rlAction == ReinforcementLearner.ACT_PERPR) safePos = perp.scale(-1);
                     else if (rlAction == ReinforcementLearner.ACT_CIRCLE_L) safePos = new Vec3(-dodgeDirection.z, 0, dodgeDirection.x);
                     else if (rlAction == ReinforcementLearner.ACT_CIRCLE_R) safePos = new Vec3(dodgeDirection.z, 0, -dodgeDirection.x);
                     else if (rlAction == ReinforcementLearner.ACT_AWAY) safePos = dodgeDirection.scale(-1);

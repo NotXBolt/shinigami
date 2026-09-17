@@ -20,7 +20,7 @@ public class AimAssistConfig implements IAimConfig {
     private double range = 3.0;
     private double fov = 360.0;
     private boolean targetPlayers = true;
-    private boolean targetHostile = false;
+    private boolean targetHostile = true;
     private boolean targetPassive = false;
     private boolean targetInvisible = false;
     private boolean requireLineOfSight = false;
@@ -51,14 +51,14 @@ public class AimAssistConfig implements IAimConfig {
     private double predictionConfidence = 0.5;
 
     // --- Mace ---
-    private boolean maceAssist = true;
-    private boolean autoSmash = true;
+    private boolean maceAssist = false;
+    private boolean autoSmash = false;
     private double minSmashHeight = 2.0;
     private boolean windBurstTracking = true;
 
     // --- Visuals ---
-    private boolean showHUD = true;
-    private boolean showTargetInfo = true;
+    private boolean showHUD = false;
+    private boolean showTargetInfo = false;
     private boolean showPrediction = false;
     private boolean showTrajectory = false;
     private int hudX = 5;
@@ -74,24 +74,24 @@ public class AimAssistConfig implements IAimConfig {
     private int rotationSpoofTicks = 2;
 
     // --- Targeting ---
-    private String priorityMode = "distance";
+    private String priorityMode = "closest";
     private ButtonType sortButton = ButtonType.NONE;
-    private double detectionRange = 64.0;
+    private double detectionRange = 8.0;
     public double getDetectionRange() { return detectionRange; }
     public void setDetectionRange(double r) { this.detectionRange = r; }
 
     // --- Modes ---
     private Mode mode = Mode.DEMON;
-    private boolean enabled = true;
+    private boolean enabled = false;
 
     // --- Sub-modes ---
-    private boolean critMode = true;
-    private boolean comboMode = true;
-    private boolean maceMode = true;
+    private boolean critMode = false;
+    private boolean comboMode = false;
+    private boolean maceMode = false;
     private boolean bowMode = false;
     private boolean bridgeMode = false;
     private boolean autoMode = false;
-    private boolean pvpMode = true;
+    private boolean pvpMode = false;
 
     public static AimAssistConfig getInstance() {
         if (INSTANCE == null) INSTANCE = new AimAssistConfig();
@@ -243,32 +243,32 @@ public class AimAssistConfig implements IAimConfig {
     public void setEnabled(boolean e) { this.enabled = e; }
 
     // movementMode - use WASD keys for chase/follow
-    private boolean movementMode = true;
+    private boolean movementMode = false;
     public boolean isMovementMode() { return movementMode; }
     public void setMovementMode(boolean m) { this.movementMode = m; }
 
     // autoDodge
-    private boolean autoDodge = true;
+    private boolean autoDodge = false;
     public boolean isAutoDodge() { return autoDodge; }
     public void setAutoDodge(boolean d) { this.autoDodge = d; }
 
     // autoEat
-    private boolean autoEat = true;
+    private boolean autoEat = false;
     public boolean isAutoEat() { return autoEat; }
     public void setAutoEat(boolean a) { this.autoEat = a; }
 
     // autoHeal
-    private boolean autoHeal = true;
+    private boolean autoHeal = false;
     public boolean isAutoHeal() { return autoHeal; }
     public void setAutoHeal(boolean a) { this.autoHeal = a; }
 
     // autoClutch
-    private boolean autoClutch = true;
+    private boolean autoClutch = false;
     public boolean isAutoClutch() { return autoClutch; }
     public void setAutoClutch(boolean a) { this.autoClutch = a; }
 
     // superAim - demon mode extra power
-    private boolean superAim = true;
+    private boolean superAim = false;
     public boolean isSuperAim() { return superAim; }
     public void setSuperAim(boolean a) { this.superAim = a; }
 
@@ -300,7 +300,7 @@ public class AimAssistConfig implements IAimConfig {
     public void setXpFarmEnabled(boolean e) { this.xpFarmEnabled = e; }
 
     // --- Underwater Breathing ---
-    private boolean autoSurface = true;
+    private boolean autoSurface = false;
     private int breathMargin = 3;
 
     public boolean isAutoSurface() { return autoSurface; }
