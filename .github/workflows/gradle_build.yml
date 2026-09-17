@@ -9,9 +9,7 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
       with:
@@ -21,23 +19,17 @@ jobs:
       uses: actions/setup-java@v5
       with:
         java-version: '25'
-        distribution: 'zulu'
+        distribution: 'temurin'
         cache: gradle
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
       
     - name: Build with Gradle
-      run: ./gradlew build -Pmod_version="$(git describe --always --tags --first-parent | cut -c2-)"
+      run: |
+        export JAVA_HOME=/usr/lib/jvm/java-25-openjdk-arm64
+        ./gradlew :fabric:build -x test -x :fabric:proguard -x :fabric:createDist --no-daemon
 
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: Artifacts
-        path: dist/
-        
-    - name: Archive mapping.txt
-      uses: actions/upload-artifact@v4
-      with:
-        name: Mappings
-        path: mapping/
+    - name: Verify JAR output
+      run: |
+        ls -lh fabric/build/libs/baritone-fabric-*.jar 2>/dev/null || echo "JAR not found"

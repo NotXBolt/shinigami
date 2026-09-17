@@ -22,7 +22,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
-import baritone.aimassist.combat.HealSystem;import baritone.aimassist.learning.AdaptiveOpponentModel;import baritone.aimassist.learning.PlayerBehaviorTracker;import net.minecraft.world.phys.Vec3;
+import baritone.aimassist.combat.HealSystem;
+import baritone.aimassist.learning.AdaptiveOpponentModel;
+import baritone.aimassist.learning.PlayerBehaviorTracker;
+import net.minecraft.world.phys.Vec3;
 
 public class AimAssistModule implements IAimAssist {
 
