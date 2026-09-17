@@ -1,5 +1,6 @@
 package baritone.aimassist.intelligence;
 
+import baritone.aimassist.AimAssistConfig;
 import baritone.aimassist.combat.*;
 import baritone.aimassist.learning.ReinforcementLearner;
 import net.minecraft.client.Minecraft;

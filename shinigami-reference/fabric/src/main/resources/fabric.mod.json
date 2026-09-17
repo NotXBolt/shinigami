@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "shinigami",
+  "version": "1.17.5",
+
+  "name": "Shinigami",
+  "description": "Autonomous AI companion - aim assist, chase, kill, farm, build portals, repair, durability management. EZ mode (undetectable) or DEMON mode.",
+  "authors": [
+    "Saizo"
+  ],
+
+  "license": "LGPL-3.0",
+
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "baritone.aimassist.AimAssistMod"
+    ]
+  },
+  "mixins": [
+      "mixins.baritone.json",
+      "mixins.aimassist.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.6",
+    "minecraft": ">=26.1 <26.3",
+    "fabric-api": ">=0.148.0"
+  }
+}

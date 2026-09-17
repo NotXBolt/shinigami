@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "baritone.launch.mixins",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "MixinAimAssistClient",
+    "MixinLocalPlayerInput",
+    "MixinAimAssistChat",
+    "MixinKeyboardHandler",
+    "MixinKeyboardInput",
+    "ClientInputAccessor"
+  ]
+}

@@ -27,6 +27,7 @@ jobs:
           echo "Using mod_version=$MOD_VERSION"
       - name: Build Shinigami (Universal 26.1.2 Fabric)
         run: |
+          export JAVA_HOME=/usr/lib/jvm/java-25-openjdk-arm64
           chmod +x gradlew
           ./gradlew :fabric:build -x test -x :fabric:proguard -x :fabric:createDist --no-daemon
       - name: Brand JAR (Shinigami-by-Saizo)
@@ -50,11 +51,5 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          name: Shinigami by Saizo v${{ steps.ver.outputs.mod_version }}
           files: fabric/build/libs/Shinigami-by-Saizo-*.jar
           generate_release_notes: true
-          fail_on_unmatched_files: false
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
