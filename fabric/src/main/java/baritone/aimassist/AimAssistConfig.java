@@ -327,6 +327,50 @@ public class AimAssistConfig implements IAimConfig {
     public double getRlEpsilon() { return rlEpsilon; }
     public void setRlEpsilon(double e) { this.rlEpsilon = e; }
 
+    // Combat Intelligence — Ultra Instinct decision engine
+    private boolean combatIntelligenceEnabled = true;
+    public boolean isCombatIntelligenceEnabled() { return combatIntelligenceEnabled; }
+    public void setCombatIntelligenceEnabled(boolean e) { this.combatIntelligenceEnabled = e; }
+
+    // Combo mode settings
+    private boolean comboModeEnabled = false;
+    public boolean isComboModeEnabled() { return comboModeEnabled; }
+    public void setComboModeEnabled(boolean e) { this.comboModeEnabled = e; }
+    private String comboType = "sword_bow";
+    public String getComboType() { return comboType; }
+    public void setComboType(String t) { this.comboType = t; }
+
+    // Exploit settings
+    private boolean attributeSwapEnabled = false;
+    public boolean isAttributeSwapEnabled() { return attributeSwapEnabled; }
+    public void setAttributeSwapEnabled(boolean e) { this.attributeSwapEnabled = e; }
+    private boolean spearReachEnabled = false;
+    public boolean isSpearReachEnabled() { return spearReachEnabled; }
+    public void setSpearReachEnabled(boolean e) { this.spearReachEnabled = e; }
+    private boolean jumpBoostExploitEnabled = false;
+    public boolean isJumpBoostExploitEnabled() { return jumpBoostExploitEnabled; }
+    public void setJumpBoostExploitEnabled(boolean e) { this.jumpBoostExploitEnabled = e; }
+    private boolean speedBoostExploitEnabled = false;
+    public boolean isSpeedBoostExploitEnabled() { return speedBoostExploitEnabled; }
+    public void setSpeedBoostExploitEnabled(boolean e) { this.speedBoostExploitEnabled = e; }
+    private boolean strengthBoostExploitEnabled = false;
+    public boolean isStrengthBoostExploitEnabled() { return strengthBoostExploitEnabled; }
+    public void setStrengthBoostExploitEnabled(boolean e) { this.strengthBoostExploitEnabled = e; }
+    private boolean resistanceExploitEnabled = false;
+    public boolean isResistanceExploitEnabled() { return resistanceExploitEnabled; }
+    public void setResistanceExploitEnabled(boolean e) { this.resistanceExploitEnabled = e; }
+    private boolean regenExploitEnabled = false;
+    public boolean isRegenExploitEnabled() { return regenExploitEnabled; }
+    public void setRegenExploitEnabled(boolean e) { this.regenExploitEnabled = e; }
+
+    // Targeting
+    private String priorityMode = "closest";
+    public String getPriorityMode() { return priorityMode; }
+    public void setPriorityMode(String m) { this.priorityMode = m; }
+    private double detectionRange = 8.0;
+    public double getDetectionRange() { return detectionRange; }
+    public void setDetectionRange(double r) { this.detectionRange = r; }
+
     // --- Area Management ---
     private final Map<String, Area> areas = new ConcurrentHashMap<>();
 

@@ -4,6 +4,7 @@ import baritone.api.aimassist.IAimAssist;
 import baritone.api.aimassist.IAimConfig;
 import baritone.api.aimassist.IAimTarget;
 import baritone.api.utils.Rotation;
+import baritone.aimassist.intelligence.CombatIntelligence;
 import baritone.aimassist.aim.AimController;
 import baritone.aimassist.combat.*;
 import baritone.aimassist.targeting.TargetManager;
@@ -55,6 +56,7 @@ public class AimAssistModule implements IAimAssist {
     private final AreaManager areaManager = new AreaManager(config);
     private final UnderwaterBreathing underwaterBreathing = new UnderwaterBreathing(config);
     private final PortalManager portalManager = new PortalManager(this, config);
+    private final CombatIntelligence combatIntelligence = new CombatIntelligence(config);
 
     // ─── Next-Gen Systems ───
     private final EntityTrackerSystem entityTracker = new EntityTrackerSystem();
@@ -220,6 +222,16 @@ public class AimAssistModule implements IAimAssist {
             }
             if (config.isBowMode()) bowAssist.tick();
             if (config.isBridgeMode()) bridgeAssist.tick();
+
+            // ─── Combat Intelligence — Ultra Instinct Decision Engine ───
+            if (config.isCombatIntelligenceEnabled()) {
+                CombatIntelligence.CombatAction aiAction = combatIntelligence.decide();
+                if (aiAction != null && aiAction.type != CombatIntelligence.CombatActionType.IDLE) {
+                    handleAIAction(aiAction);
+                }
+                // Update config modes from intelligence decisions
+                updateModesFromIntelligence();
+            }
 
             if (screenControl.shouldBlockAim()) return;
 
@@ -583,4 +595,103 @@ public class AimAssistModule implements IAimAssist {
         chaseBehavior.setKill(k);
     }
     public void setTargetPlayerName(String n) { setCurrentChaseTarget(n); }
+
+    /**
+     * Handle a decision from CombatIntelligence.
+     * Translates AI actions into module calls.
+     */
+    private void handleAIAction(CombatIntelligence.CombatAction action) {
+        if (mc.player == null || action == null) return;
+        switch (action.type) {
+            case DODGE:
+            case EMERGENCY_DODGE:
+                if (action.direction != null) {
+                    KeyMovementController ctrl = getMovementController();
+                    if (ctrl != null) {
+                        ctrl.moveToward(action.direction, action.sprint, action.jump, false);
+                    }
+                }
+                break;
+            case ATTACK:
+            case PRESSURE_ATTACK:
+            case FINISH_ATTACK:
+                if (targetManager.getPrimaryTarget() != null) {
+                    mc.options.keyAttack.setDown(true);
+                }
+                break;
+            case SHOOT:
+                if (config.isBowMode()) bowAssist.setActive(true);
+                if (targetManager.getPrimaryTarget() != null) {
+                    mc.options.keyAttack.setDown(true);
+                }
+                break;
+            case SMASH:
+                if (config.isMaceMode()) maceAssist.setActive(true);
+                break;
+            case CHASE:
+            case INTERCEPT:
+                chaseBehavior.setTarget(currentTarget != null ? currentTarget.getName().getString() : null);
+                setChaseMode(true);
+                break;
+            case HEAL:
+                autoUtil.autoSprint(false);
+                break;
+            case ESCAPE:
+                setFleeMode(true);
+                break;
+            case CLUTCH:
+                clutchSystem.setActive(true);
+                break;
+            case REPOSITION:
+                setChaseMode(false);
+                setFleeMode(false);
+                break;
+            case IDLE:
+            case WAIT_FOR_COOLDOWN:
+                mc.options.keyAttack.setDown(false);
+                mc.options.keyUse.setDown(false);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Update config modes based on CombatIntelligence decisions.
+     */
+    private void updateModesFromIntelligence() {
+        if (mc.player == null) return;
+        CombatIntelligence.CombatState state = combatIntelligence.getState();
+        LivingEntity target = combatIntelligence.getCurrentTarget();
+
+        switch (state) {
+            case ENGAGE:
+            case PRESSURE:
+                if (target != null) {
+                    ItemStack held = mc.player.getMainHandItem();
+                    if (held.is(Items.BOW) || held.is(Items.CROSSBOW)) config.setBowMode(true);
+                    else if (held.is(Items.MACE)) config.setMaceMode(true);
+                    else config.setCritMode(true);
+                }
+                break;
+            case EVADE:
+                config.setAutoDodge(true);
+                break;
+            case CHASE:
+                setChaseMode(true);
+                break;
+            case HEAL:
+                config.setAutoEat(true);
+                config.setAutoHeal(true);
+                break;
+            case ESCAPE:
+                setFleeMode(true);
+                break;
+            case FINISH:
+                config.setCritMode(true);
+                break;
+            default:
+                break;
+        }
+    }
 }
